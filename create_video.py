@@ -2,8 +2,8 @@ import os
 import cv2
 
 def build_video_from_images(
-    image_dir="/Users/sreebhargavibalija/Desktop/8001/MOT17/train/MOT17-02-DPM/yolo_boxes",
-    output_video_path="/Users/sreebhargavibalija/Desktop/8001/MOT17/train/MOT17-02-DPM/yolo_boxes_video.mp4",
+    image_dir="MOT17/train/MOT17-02-DPM/yolo_boxes",
+    output_video_path="MOT17/train/MOT17-02-DPM/yolo_boxes_video.mp4",
     fps=30
 ):
     images = sorted([
@@ -48,13 +48,13 @@ if __name__ == "__main__":
     parser.add_argument(
         "--image_dir",
         type=str,
-        default="/Users/sreebhargavibalija/Desktop/8001/MOT17/train/MOT17-02-DPM/yolo_boxes",
+        default="MOT17/train/MOT17-02-DPM/yolo_boxes",
         help="Path to folder containing images"
     )
     parser.add_argument(
         "--output",
         type=str,
-        default="/Users/sreebhargavibalija/Desktop/8001/MOT17/train/MOT17-02-DPM/yolo_boxes_video.mp4",
+        default="MOT17/train/MOT17-02-DPM/yolo_boxes_video.mp4",
         help="Path to output MP4 video file"
     )
     parser.add_argument(
