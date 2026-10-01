@@ -1,9 +1,6 @@
-"""Run ByteTrack over detections that were already written to a CSV.
-
-No detector runs here. Read `<sequence>/yolo_detections.csv` produced by
+"""Read `<sequence>/yolo_detections.csv` produced by
 `video_processing.py`, associate the boxes frame by frame, draw stable track
 IDs on the original MOT17 images and write MOT-format results.
-
 Swapping the tracker is a flag: `--tracker ocsort.yaml` gives OC-SORT, since
 both trackers take the same detection interface. Swapping the detector is a
 flag too: point `--detections` at any CSV with the same columns.
