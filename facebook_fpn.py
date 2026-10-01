@@ -24,7 +24,7 @@ model.eval()
 # MOT17 TRAIN DIRECTORY
 # ============================================================
 
-base_path = "/Users/sreebhargavibalija/Desktop/8001/MOT17/train"
+base_path = "MOT17/train"
 
 
 # ============================================================

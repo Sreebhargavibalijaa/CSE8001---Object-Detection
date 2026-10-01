@@ -5,7 +5,7 @@ processor = AutoImageProcessor.from_pretrained("facebook/detr-resnet-50")
 model = AutoModelForObjectDetection.from_pretrained("facebook/detr-resnet-50", device_map="auto")
 
 # MOT17 train directory
-base_path = "/Users/sreebhargavibalija/Desktop/8001/MOT17/train"
+base_path = "MOT17/train"
 
 # Go through every MOT17 sequence
 # Go through every MOT17 sequence
