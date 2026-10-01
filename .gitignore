@@ -1,0 +1,9 @@
+# MOT17 dataset and all generated outputs (annotated frames, CSVs, MOT results, videos)
+MOT17/
+
+# Model weights -- ultralytics re-downloads these on first run
+*.pt
+
+# Python
+__pycache__/
+*.py[cod]
