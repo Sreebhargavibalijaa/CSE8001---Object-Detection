@@ -137,34 +137,3 @@ Ultralytics tracker YAML files. A custom YAML can be passed to `track.py` with `
   the 99th percentile of the same quantity over ground-truth pedestrian tracks in the seven
   MOT17 training videos. `evaluate.py` reports how many steps were checked and the pass rate.
   The threshold can be changed with `--motion-threshold`.
-
----
-
-## Results
-
-Full MOT17-02-DPM (600 frames) and MOT17-09-DPM (525 frames), combined.
-FPS is detector plus tracker on CPU with 4 threads.
-
-| Detector | Tracker | HOTA | MOTA | IDF1 | Motion assertion pass % | FPS |
-|---|---|---:|---:|---:|---:|---:|
-| YOLO26n | ByteTrack | 31.12 | **26.95** | 34.39 | 99.14 | **4.17** |
-| YOLO26n | OC-SORT | **31.87** | 26.86 | **36.07** | 99.17 | 4.15 |
-| Faster R-CNN | ByteTrack | 31.72 | 18.14 | 36.04 | 99.51 | 0.13 |
-| Faster R-CNN | OC-SORT | 30.68 | 17.36 | 35.62 | 99.45 | 0.13 |
-| DETR | ByteTrack | 28.02 | 4.80 | 28.87 | 99.38 | 0.24 |
-| DETR | OC-SORT | 26.69 | 2.15 | 26.66 | 99.32 | 0.24 |
-
-Per video:
-
-| Detector | Tracker | 02 HOTA | 09 HOTA | 02 MOTA | 09 MOTA | 02 IDF1 | 09 IDF1 |
-|---|---|---:|---:|---:|---:|---:|---:|
-| YOLO26n | ByteTrack | 26.18 | 43.39 | 18.98 | 54.76 | 27.08 | 52.71 |
-| YOLO26n | OC-SORT | 27.35 | 43.30 | 18.87 | 54.72 | 29.04 | 53.71 |
-| Faster R-CNN | ByteTrack | 27.57 | 43.30 | 12.13 | 39.12 | 31.75 | 49.32 |
-| Faster R-CNN | OC-SORT | 27.64 | 39.59 | 11.49 | 37.82 | 32.09 | 46.60 |
-| DETR | ByteTrack | 23.47 | 39.27 | -0.73 | 24.11 | 23.98 | 42.94 |
-| DETR | OC-SORT | 21.53 | 38.90 | -3.30 | 21.16 | 21.25 | 42.25 |
-
-These are two training videos, not the MOT17 test set, so the ranking is descriptive only.
-The results were produced with `ultralytics` 8.4.63 and `trackeval` 1.3.0; other versions may
-give slightly different numbers.
