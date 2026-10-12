@@ -11,7 +11,7 @@ MOT17 images -> detect.py -> detections CSV -> track.py -> MOT track file -> eva
 |---|---|
 | Detector | YOLO26n, Faster R-CNN ResNet50-FPN (torchvision), DETR ResNet-50 (`facebook/detr-resnet-50`) |
 | Tracker | ByteTrack, OC-SORT (the implementations bundled with Ultralytics) |
-| Metrics | HOTA, DetA, AssA, LocA, MOTA, MOTP, IDF1, IDP, IDR, FP, FN, IDSW, Frag, Precision, Recall |
+| Metrics | HOTA, MOTA, FP, FN, IDF1, Precision, Recall |
 
 Everything runs on CPU with pretrained weights. No training or fine-tuning is involved.
 
