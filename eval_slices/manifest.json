@@ -1,0 +1,120 @@
+{
+  "guide": "Pipeline Evaluation Guide v4",
+  "dataset": "MOT17",
+  "subset": "train",
+  "folders": "FRCNN",
+  "note": "DPM/FRCNN/SDP folders share frames and GT; the guide requires the FRCNN folders. Split is first/second half of seqinfo.ini seqLength, not a random sample. numpy.random.default_rng(8001) is recorded for reproducibility but is not used.",
+  "rng_seed": 8001,
+  "sequences": {
+    "MOT17-02-FRCNN": {
+      "name": "MOT17-02-FRCNN",
+      "seq_length": 600,
+      "frame_rate": 30.0,
+      "width": 1920,
+      "height": 1080,
+      "seqinfo_sha256": "669c5135aa1b7f1726ee50ab6cec86780fc448dadaf93ea9c4fb6e2a0d4256aa",
+      "gt_sha256": "2e3ecb488da8886d3200d402b2b08890c6d2879923839444e9b74fa43a551440",
+      "det_sha256": "1e46e773a7297b975291884266ca728f56347e700c44f10ad96f207e1f6995ae"
+    },
+    "MOT17-04-FRCNN": {
+      "name": "MOT17-04-FRCNN",
+      "seq_length": 1050,
+      "frame_rate": 30.0,
+      "width": 1920,
+      "height": 1080,
+      "seqinfo_sha256": "f2d5bbe2c4d2a884422571987bc5363b61bb7e2c6748d1cff444e55b4886b888",
+      "gt_sha256": "f8cfbe36ef38a2e1857d7ebfe7d754b2355a3ffb9e1f9cedea435e86e4fbc948",
+      "det_sha256": "e1494db52e85cc13dad52ac01e7efe972e4e432f6ce788da8a4dfa0d38edce75"
+    },
+    "MOT17-09-FRCNN": {
+      "name": "MOT17-09-FRCNN",
+      "seq_length": 525,
+      "frame_rate": 30.0,
+      "width": 1920,
+      "height": 1080,
+      "seqinfo_sha256": "96cec357e5661afad673cc2259310d2c0fb93854ffe18b765fd973c38f3957d9",
+      "gt_sha256": "592f0d5b519c03b35bb1578c33d726460f63abb91ea0c515f87e8d6d76be001d",
+      "det_sha256": "d4bf28e2ccb4c46a5e36ecb6b35177ac27ad1ac3c74fc09a601c0a9d4cf9ec6d"
+    }
+  },
+  "development": {
+    "MOT17-02-FRCNN": {
+      "original_frames": [
+        1,
+        300
+      ],
+      "trimmed_frames": [
+        1,
+        300
+      ],
+      "trimmed_length": 300,
+      "frame_ids": "1..300 inclusive (300 frames)"
+    },
+    "MOT17-04-FRCNN": {
+      "original_frames": [
+        1,
+        525
+      ],
+      "trimmed_frames": [
+        1,
+        525
+      ],
+      "trimmed_length": 525,
+      "frame_ids": "1..525 inclusive (525 frames)"
+    },
+    "MOT17-09-FRCNN": {
+      "original_frames": [
+        1,
+        262
+      ],
+      "trimmed_frames": [
+        1,
+        262
+      ],
+      "trimmed_length": 262,
+      "frame_ids": "1..262 inclusive (262 frames)"
+    }
+  },
+  "test": {
+    "MOT17-02-FRCNN": {
+      "original_frames": [
+        301,
+        600
+      ],
+      "trimmed_frames": [
+        1,
+        300
+      ],
+      "trimmed_length": 300,
+      "frame_ids": "301..600 inclusive (300 frames)"
+    },
+    "MOT17-04-FRCNN": {
+      "original_frames": [
+        526,
+        1050
+      ],
+      "trimmed_frames": [
+        1,
+        525
+      ],
+      "trimmed_length": 525,
+      "frame_ids": "526..1050 inclusive (525 frames)"
+    },
+    "MOT17-09-FRCNN": {
+      "original_frames": [
+        263,
+        525
+      ],
+      "trimmed_frames": [
+        1,
+        263
+      ],
+      "trimmed_length": 263,
+      "frame_ids": "263..525 inclusive (263 frames)"
+    }
+  },
+  "slice_roots": {
+    "development": "eval_slices/MOT17_development",
+    "test": "eval_slices/MOT17_test"
+  }
+}

@@ -1,9 +1,23 @@
 # MOT17 dataset and all generated outputs (annotated frames, CSVs, MOT results, videos)
 MOT17/
+eval_slices/MOT17_development/
+eval_slices/MOT17_test/
 
 # Model weights -- ultralytics re-downloads these on first run
 *.pt
+*.onnx
+*.pth
+
+# Registry binaries (catalog.json is tracked)
+**/registry/artifacts/
+**/registry/export/
 
 # Python
 __pycache__/
 *.py[cod]
+venv/
+.venv/
+.DS_Store
+**/results/benchmark.log
+docs/.mpl/
+docs/profile/run.log

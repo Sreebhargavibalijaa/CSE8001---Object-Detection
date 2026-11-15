@@ -77,6 +77,22 @@ def render_video(sequence, frames, tracks, output, label):
     writer.release()
 
 
+def run_tracking(sequence, detections, tracker_name, tracker_config, output, max_frames=None):
+    limit = sequence.frame_limit(max_frames)
+    tracker = build_tracker(tracker_name, tracker_config)
+    tracks = []
+    for frame in range(1, limit + 1):
+        # Every frame is passed in order, including frames without detections.
+        outputs = tracker.update(FrameDetections(detections.get(frame, [])))
+        for x1, y1, x2, y2, track_id, confidence, *_ in outputs:
+            tracks.append((frame, int(track_id), float(x1), float(y1), float(x2 - x1), float(y2 - y1),
+                           float(confidence)))
+    write_tracks(output, tracks)
+    print(f"{len(tracks)} track rows, {len({row[1] for row in tracks})} track IDs "
+          f"over {limit} frames -> {output}")
+    return tracks
+
+
 def main():
     parser = argparse.ArgumentParser(description="Track saved detections; no detector is run")
     add_common_arguments(parser)
@@ -87,25 +103,13 @@ def main():
     args = parser.parse_args()
 
     sequence = load_sequence(args.dataset_root, args.sequence)
-    limit = sequence.frame_limit(args.max_frames)
     detections = read_detections(args.detections)
-    tracker = build_tracker(args.tracker, args.tracker_config)
-
-    tracks = []
-    for frame in range(1, limit + 1):
-        # Every frame is passed in order, including frames without detections.
-        outputs = tracker.update(FrameDetections(detections.get(frame, [])))
-        for x1, y1, x2, y2, track_id, confidence, *_ in outputs:
-            tracks.append((frame, int(track_id), float(x1), float(y1), float(x2 - x1), float(y2 - y1),
-                           float(confidence)))
-
-    stem = f"{args.detections.stem}_{args.tracker}"
+    tracker_tag = args.tracker_config.stem if args.tracker_config else args.tracker
+    stem = f"{args.detections.stem}_{tracker_tag}"
     output = args.output_root / "tracks" / sequence.name / f"{stem}.txt"
-    write_tracks(output, tracks)
-    print(f"{len(tracks)} track rows, {len({row[1] for row in tracks})} track IDs "
-          f"over {limit} frames -> {output}")
+    tracks = run_tracking(sequence, detections, args.tracker, args.tracker_config, output, args.max_frames)
     if args.video:
-        render_video(sequence, image_frames(sequence, limit), tracks, args.video,
+        render_video(sequence, image_frames(sequence, args.max_frames), tracks, args.video,
                      f"{args.detections.stem} + {args.tracker}")
         print(f"Video -> {args.video}")
 

@@ -1,0 +1,14 @@
+dataset: MOT17 train (FRCNN folders)
+guide: Pipeline Evaluation Guide v4
+source: /Users/sreebhargavibalija/Desktop/8001/CSE8001---Object-Detection/MOT17
+split: first half of seqinfo.ini seqLength = development; remainder = test
+sequences:
+  MOT17-02-FRCNN: seqLength=600 fps=30.0 gt=2e3ecb488da8 seqinfo=669c5135aa1b
+    development original frames 1-300
+    test         original frames 301-600
+  MOT17-04-FRCNN: seqLength=1050 fps=30.0 gt=f8cfbe36ef38 seqinfo=f2d5bbe2c4d2
+    development original frames 1-525
+    test         original frames 526-1050
+  MOT17-09-FRCNN: seqLength=525 fps=30.0 gt=592f0d5b519c seqinfo=96cec357e566
+    development original frames 1-262
+    test         original frames 263-525

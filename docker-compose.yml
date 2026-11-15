@@ -1,0 +1,84 @@
+# Model registry (MinIO) for MOT17 detector / tracker variants.
+#
+#   docker compose up -d minio
+#   python register_variants.py
+#
+# Console: http://127.0.0.1:19001  (minioadmin / minioadmin)
+# S3 API:  http://127.0.0.1:19000  bucket mot17-models
+
+services:
+  minio:
+    image: elestio/minio:latest
+    command: server /data --console-address ":9001"
+    ports:
+      - "19000:9000"
+      - "19001:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  detect:
+    build:
+      context: .
+      dockerfile: services/Dockerfile
+    image: mot17-serve:local
+    command: ["python", "-m", "services.detect.server"]
+    environment:
+      MODEL_NAME: yolo26n-pt-imgsz640
+      MODEL_VERSION: "1.0.0"
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+      BATCH_SIZE: "4"
+      BATCH_TIMEOUT: "0.05"
+      DEVICE: cpu
+      GRPC_PORT: "50051"
+      METRICS_PORT: "8080"
+    ports:
+      - "50051:50051"
+      - "8081:8080"
+    depends_on:
+      - minio
+
+  track:
+    image: mot17-serve:local
+    command: ["python", "-m", "services.track.server"]
+    environment:
+      MODEL_NAME: bytetrack
+      MODEL_VERSION: "1.0.0"
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+      BATCH_SIZE: "8"
+      BATCH_TIMEOUT: "0.02"
+      GRPC_PORT: "50051"
+      METRICS_PORT: "8080"
+    ports:
+      - "50052:50051"
+      - "8082:8080"
+    depends_on:
+      - minio
+
+  evaluate:
+    image: mot17-serve:local
+    command: ["python", "-m", "services.evaluate.server"]
+    environment:
+      DATASET_ROOT: /data/MOT17
+      BATCH_SIZE: "1"
+      GRPC_PORT: "50051"
+      METRICS_PORT: "8080"
+    ports:
+      - "50053:50051"
+      - "8083:8080"
+    volumes:
+      - ./MOT17:/data/MOT17:ro
+
+volumes:
+  minio-data:

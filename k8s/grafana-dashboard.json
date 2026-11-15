@@ -1,0 +1,76 @@
+{
+  "title": "MOT17 pipeline",
+  "uid": "mot17-pipeline",
+  "schemaVersion": 38,
+  "timezone": "browser",
+  "refresh": "5s",
+  "tags": ["mot17", "t4"],
+  "templating": {"list": []},
+  "time": {"from": "now-15m", "to": "now"},
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "p50 / p95 / p99 latency (s)",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "s"}, "overrides": []},
+      "targets": [
+        {"expr": "histogram_quantile(0.50, sum by (le, stage) (rate(mot_request_latency_seconds_bucket[1m])))", "legendFormat": "p50 {{stage}}", "refId": "A"},
+        {"expr": "histogram_quantile(0.95, sum by (le, stage) (rate(mot_request_latency_seconds_bucket[1m])))", "legendFormat": "p95 {{stage}}", "refId": "B"},
+        {"expr": "histogram_quantile(0.99, sum by (le, stage) (rate(mot_request_latency_seconds_bucket[1m])))", "legendFormat": "p99 {{stage}}", "refId": "C"}
+      ]
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "Throughput (req/s)",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {"expr": "sum by (stage) (rate(mot_requests_total{status=\"ok\"}[1m]))", "legendFormat": "{{stage}}", "refId": "A"}
+      ]
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "Queue length",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {"expr": "mot_queue_length", "legendFormat": "{{stage}} {{pod}}", "refId": "A"}
+      ]
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "Current batch size",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {"expr": "mot_batch_size", "legendFormat": "{{stage}} {{pod}}", "refId": "A"}
+      ]
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "CPU usage (cores)",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {"expr": "sum by (stage) (rate(process_cpu_seconds_total[1m]))", "legendFormat": "{{stage}}", "refId": "A"}
+      ]
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "Assertion pass rate",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 16},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "percentunit", "min": 0, "max": 1}, "overrides": []},
+      "targets": [
+        {"expr": "sum by (stage) (rate(mot_assertion_total{result=\"pass\"}[5m])) / clamp_min(sum by (stage) (rate(mot_assertion_total[5m])), 1e-9)", "legendFormat": "{{stage}}", "refId": "A"}
+      ]
+    }
+  ]
+}

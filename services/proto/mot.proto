@@ -1,0 +1,87 @@
+syntax = "proto3";
+
+package mot;
+
+service Detector {
+  rpc Detect (DetectRequest) returns (DetectResponse);
+}
+
+service Tracker {
+  rpc Track (TrackRequest) returns (TrackResponse);
+}
+
+service Evaluator {
+  rpc Evaluate (EvaluateRequest) returns (EvaluateResponse);
+}
+
+message Box {
+  float x1 = 1;
+  float y1 = 2;
+  float x2 = 3;
+  float y2 = 4;
+  float confidence = 5;
+}
+
+message Frame {
+  string stream_id = 1;
+  int32 frame_id = 2;
+  bytes jpeg = 3;
+  int32 width = 4;
+  int32 height = 5;
+}
+
+message DetectRequest {
+  repeated Frame frames = 1;
+}
+
+message FrameDetections {
+  string stream_id = 1;
+  int32 frame_id = 2;
+  repeated Box boxes = 3;
+}
+
+message DetectResponse {
+  repeated FrameDetections detections = 1;
+}
+
+message TrackRequest {
+  string stream_id = 1;
+  int32 frame_id = 2;
+  int32 width = 3;
+  int32 height = 4;
+  repeated Box boxes = 5;
+}
+
+message Track {
+  int32 frame_id = 1;
+  int32 track_id = 2;
+  float left = 3;
+  float top = 4;
+  float width = 5;
+  float height = 6;
+  float confidence = 7;
+}
+
+message TrackResponse {
+  repeated Track tracks = 1;
+  int32 assertions_passed = 2;
+  int32 assertions_failed = 3;
+}
+
+message EvaluateRequest {
+  string stream_id = 1;
+  int32 width = 2;
+  int32 height = 3;
+  repeated Track tracks = 4;
+}
+
+message EvaluateResponse {
+  int32 assertions_checked = 1;
+  int32 assertions_failed = 2;
+  float assertion_pass_rate = 3;
+  float hota = 4;
+  float mota = 5;
+  float idf1 = 6;
+  float recall = 7;
+  float precision = 8;
+}

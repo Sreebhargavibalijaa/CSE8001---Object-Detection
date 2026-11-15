@@ -1,0 +1,307 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: mot17
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: detect
+  namespace: mot17
+spec:
+  selector:
+    app: detect
+  ports:
+    - name: grpc
+      port: 50051
+      targetPort: 50051
+    - name: metrics
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: detect
+  namespace: mot17
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: detect
+  template:
+    metadata:
+      labels:
+        app: detect
+        stage: detect
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+    spec:
+      containers:
+        - name: detect
+          image: mot17-serve:local
+          imagePullPolicy: IfNotPresent
+          command: ["python", "-m", "services.detect.server"]
+          ports:
+            - containerPort: 50051
+              name: grpc
+            - containerPort: 8080
+              name: metrics
+          env:
+            - name: MODEL_NAME
+              value: "yolo26n-pt-imgsz640"
+            - name: MODEL_VERSION
+              value: "1.0.0"
+            - name: MINIO_ENDPOINT
+              value: "host.docker.internal:19000"
+            - name: MINIO_ACCESS_KEY
+              value: minioadmin
+            - name: MINIO_SECRET_KEY
+              value: minioadmin
+            - name: BATCH_SIZE
+              value: "4"
+            - name: BATCH_TIMEOUT
+              value: "0.05"
+            - name: DEVICE
+              value: cpu
+            - name: GRPC_PORT
+              value: "50051"
+            - name: METRICS_PORT
+              value: "8080"
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "1Gi"
+            limits:
+              cpu: "2"
+              memory: "3Gi"
+          readinessProbe:
+            httpGet:
+              path: /metrics
+              port: 8080
+            initialDelaySeconds: 20
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: track
+  namespace: mot17
+spec:
+  clusterIP: None
+  selector:
+    app: track
+  ports:
+    - name: grpc
+      port: 50051
+      targetPort: 50051
+    - name: metrics
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: track
+  namespace: mot17
+spec:
+  serviceName: track
+  replicas: 1
+  selector:
+    matchLabels:
+      app: track
+  template:
+    metadata:
+      labels:
+        app: track
+        stage: track
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+    spec:
+      containers:
+        - name: track
+          image: mot17-serve:local
+          imagePullPolicy: IfNotPresent
+          command: ["python", "-m", "services.track.server"]
+          ports:
+            - containerPort: 50051
+              name: grpc
+            - containerPort: 8080
+              name: metrics
+          env:
+            - name: MODEL_NAME
+              value: "bytetrack"
+            - name: MODEL_VERSION
+              value: "1.0.0"
+            - name: MINIO_ENDPOINT
+              value: "host.docker.internal:19000"
+            - name: MINIO_ACCESS_KEY
+              value: minioadmin
+            - name: MINIO_SECRET_KEY
+              value: minioadmin
+            - name: BATCH_SIZE
+              value: "8"
+            - name: BATCH_TIMEOUT
+              value: "0.02"
+            - name: GRPC_PORT
+              value: "50051"
+            - name: METRICS_PORT
+              value: "8080"
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "512Mi"
+            limits:
+              cpu: "1"
+              memory: "1Gi"
+          readinessProbe:
+            httpGet:
+              path: /metrics
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: evaluate
+  namespace: mot17
+spec:
+  selector:
+    app: evaluate
+  ports:
+    - name: grpc
+      port: 50051
+      targetPort: 50051
+    - name: metrics
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: evaluate
+  namespace: mot17
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: evaluate
+  template:
+    metadata:
+      labels:
+        app: evaluate
+        stage: evaluate
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+    spec:
+      containers:
+        - name: evaluate
+          image: mot17-serve:local
+          imagePullPolicy: IfNotPresent
+          command: ["python", "-m", "services.evaluate.server"]
+          ports:
+            - containerPort: 50051
+              name: grpc
+            - containerPort: 8080
+              name: metrics
+          env:
+            - name: DATASET_ROOT
+              value: /data/MOT17
+            - name: BATCH_SIZE
+              value: "1"
+            - name: GRPC_PORT
+              value: "50051"
+            - name: METRICS_PORT
+              value: "8080"
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "512Mi"
+            limits:
+              cpu: "1"
+              memory: "1Gi"
+          volumeMounts:
+            - name: mot17
+              mountPath: /data/MOT17
+              readOnly: true
+          readinessProbe:
+            httpGet:
+              path: /metrics
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+      volumes:
+        - name: mot17
+          hostPath:
+            path: /Users/sreebhargavibalija/Desktop/8001/CSE8001---Object-Detection/MOT17
+            type: Directory
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway
+  namespace: mot17
+spec:
+  selector:
+    app: gateway
+  ports:
+    - name: dummy
+      port: 80
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway
+  namespace: mot17
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gateway
+  template:
+    metadata:
+      labels:
+        app: gateway
+        stage: gateway
+    spec:
+      containers:
+        - name: gateway
+          image: mot17-serve:local
+          imagePullPolicy: IfNotPresent
+          command: ["sleep", "infinity"]
+          env:
+            - name: DETECT_ADDR
+              value: detect.mot17.svc.cluster.local:50051
+            - name: EVALUATE_ADDR
+              value: evaluate.mot17.svc.cluster.local:50051
+            - name: TRACKER_NAMESPACE
+              value: mot17
+            - name: TRACKER_SERVICE
+              value: track
+            - name: TRACKER_REPLICAS
+              value: "1"
+            - name: DATASET_ROOT
+              value: /data/MOT17
+            - name: PYTHONPATH
+              value: /app
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          volumeMounts:
+            - name: mot17
+              mountPath: /data/MOT17
+              readOnly: true
+      volumes:
+        - name: mot17
+          hostPath:
+            path: /Users/sreebhargavibalija/Desktop/8001/CSE8001---Object-Detection/MOT17
+            type: Directory

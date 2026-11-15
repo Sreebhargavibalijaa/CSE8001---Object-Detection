@@ -9,6 +9,18 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_DATASET_ROOT = REPO_ROOT / "MOT17"
 DEFAULT_OUTPUT_ROOT = Path(__file__).resolve().parent / "outputs"
 
+# MOT17 ships each of the seven train videos as three folders (DPM, FRCNN, SDP)
+# with identical frames. Use one copy of each video when choosing a configuration.
+UNIQUE_TRAIN_SEQUENCES = [
+    "MOT17-02-DPM",
+    "MOT17-04-DPM",
+    "MOT17-05-DPM",
+    "MOT17-09-DPM",
+    "MOT17-10-DPM",
+    "MOT17-11-DPM",
+    "MOT17-13-DPM",
+]
+
 # Detections: original-image pixel coordinates, class_id 0 = person.
 DETECTION_COLUMNS = ["frame", "x1", "y1", "x2", "y2", "confidence", "class_id"]
 
@@ -58,12 +70,26 @@ def image_frames(sequence, max_frames=None):
     return frames
 
 
+def resolve_device(name="auto"):
+    """Prefer Apple GPU, then CUDA, then CPU. Docker images typically land on CPU."""
+    import torch
+    if name != "auto":
+        return name
+    if torch.backends.mps.is_available():
+        return "mps"
+    if torch.cuda.is_available():
+        return "cuda"
+    return "cpu"
+
+
 def add_common_arguments(parser):
     parser.add_argument("--dataset-root", type=Path, default=DEFAULT_DATASET_ROOT,
                         help="MOT17 folder containing train/")
     parser.add_argument("--sequence", default="MOT17-02-DPM")
     parser.add_argument("--output-root", type=Path, default=DEFAULT_OUTPUT_ROOT)
     parser.add_argument("--max-frames", type=int, help="Only use frames 1 through N")
+    parser.add_argument("--device", default="auto",
+                        help="auto, cpu, mps or cuda. auto picks mps/cuda when available")
 
 
 def write_detections(path, rows):
