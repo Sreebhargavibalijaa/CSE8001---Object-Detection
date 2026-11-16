@@ -41,6 +41,16 @@ want() { local s; for s in "${STEPS[@]}"; do [[ "$s" == "$1" ]] && return 0; don
 banner() { echo; echo "==== $(date '+%F %T')  $*"; }
 NS=mot17
 
+# k8s/pipeline.yaml as applied on THIS VM: MinIO at this VM's private IP (pods reach the
+# docker-compose MinIO through it) and MOT17 mounted from this checkout.
+apply_pipeline() {
+  local ip
+  ip="$(hostname -I | awk '{print $1}')"
+  sed -e "s|value: \"[0-9.]*:19000\"|value: \"${ip}:19000\"|" \
+      -e "s|path: .*/MOT17$|path: ${ROOT}/MOT17|" \
+      k8s/pipeline.yaml | kubectl apply -f -
+}
+
 banner "steps: ${STEPS[*]}   log: $LOG"
 FREE_GB=$(df --output=avail -BG / | tail -1 | tr -dc '0-9')
 echo "free disk: ${FREE_GB} GB"
@@ -80,7 +90,7 @@ fi
 
 if want deploy; then
   banner "deploy"
-  kubectl apply -f k8s/pipeline.yaml
+  apply_pipeline
   kubectl apply -f k8s/monitoring.yaml
   kubectl -n "$NS" rollout restart deployment/detect deployment/evaluate deployment/gateway statefulset/track
   for w in deployment/detect statefulset/track deployment/evaluate deployment/gateway; do
@@ -119,7 +129,7 @@ if want restore; then
   banner "restore manifest defaults"
   # The sweep patched env / resources / replicas; recreate the two stages from the manifest.
   kubectl -n "$NS" delete deployment/detect statefulset/track --wait=true
-  kubectl apply -f k8s/pipeline.yaml
+  apply_pipeline
   kubectl -n "$NS" rollout status deployment/detect --timeout=600s
   kubectl -n "$NS" rollout status statefulset/track --timeout=600s
 fi

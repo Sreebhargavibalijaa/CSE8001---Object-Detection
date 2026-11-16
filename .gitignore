@@ -21,3 +21,13 @@ venv/
 **/results/benchmark.log
 docs/.mpl/
 docs/profile/run.log
+
+# Profiling leftovers: backups of superseded CSVs and logs of interrupted runs
+docs/profile/*.bak
+docs/profile/run_k8s_*.log
+!docs/profile/run_k8s_20261116_031817.log
+
+# Hand-off archives used to copy files between laptop and VM
+*.tar.gz
+*.tgz
+vm_results/
