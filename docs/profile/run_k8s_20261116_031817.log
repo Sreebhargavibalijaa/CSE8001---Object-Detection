@@ -1,0 +1,1193 @@
+
+==== 2026-11-16 03:18:17  steps: image deploy preflight calibrate t6 t7 plots restore   log: docs/profile/run_k8s_20261116_031817.log
+free disk: 11 GB
+
+==== 2026-11-16 03:18:17  serving image -> k3s
+#0 building with "default" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 1.01kB done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/python:3.11-slim-bookworm
+#2 DONE 0.3s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 393B done
+#3 DONE 0.0s
+
+#4 [internal] load build context
+#4 transferring context: 4.14kB 0.0s done
+#4 DONE 0.0s
+
+#5 [1/7] FROM docker.io/library/python:3.11-slim-bookworm@sha256:a83ba18aef0f865b1a4a611c2cf460fe446f2795673bbb9fe43be570439e3b39
+#5 resolve docker.io/library/python:3.11-slim-bookworm@sha256:a83ba18aef0f865b1a4a611c2cf460fe446f2795673bbb9fe43be570439e3b39 0.0s done
+#5 DONE 0.0s
+
+#6 [4/7] COPY requirements-serve.txt ./
+#6 CACHED
+
+#7 [2/7] WORKDIR /app
+#7 CACHED
+
+#8 [3/7] RUN apt-get update && apt-get install -y --no-install-recommends         git g++ cmake libglib2.0-0 libgl1     && rm -rf /var/lib/apt/lists/*
+#8 CACHED
+
+#9 [6/7] COPY [mot_pipeline (Object_Detection + Tracking)/, /app/mot_pipeline (Object_Detection + Tracking)/]
+#9 CACHED
+
+#10 [5/7] RUN pip install --upgrade pip     && pip install torch==2.9.1+cpu torchvision==0.24.1+cpu --index-url https://download.pytorch.org/whl/cpu     && pip install ultralytics==8.4.214 opencv-python-headless "numpy>=1.24.0" pillow          lap trackeval minio onnx onnxruntime     && pip install -r requirements-serve.txt
+#10 CACHED
+
+#11 [7/7] COPY services /app/services
+#11 CACHED
+
+#12 exporting to image
+#12 exporting layers done
+#12 exporting manifest sha256:9bf4d4941d801fc600dc8e9f6724f1276077159c7d1a8147f06ce83f705643c0 done
+#12 exporting config sha256:942d51df894094a8f942ffddc6466d6824621a497fa00a503f1426321f3873a8 done
+#12 exporting attestation manifest sha256:e954fbc7bca5ac1d353c65b6120b9b63f6abfe569cf91f0abfb2abad854407c7 0.0s done
+#12 exporting manifest list sha256:e3ec5a6d4ab68289572b856dc4c939a870989376e2f321816e200043a3714ae5 0.0s done
+#12 naming to docker.io/library/mot17-serve:local done
+#12 unpacking to docker.io/library/mot17-serve:local done
+#12 DONE 0.1s
+docker.io/library/mot17 serve:local     	saved	
+application/vnd.oci.image.index.v1+json sha256:e3ec5a6d4ab68289572b856dc4c939a870989376e2f321816e200043a3714ae5
+Importing	elapsed: 37.4s	total:   0.0 B	(0.0 B/s)	
+
+==== 2026-11-16 03:18:55  deploy
+namespace/mot17 unchanged
+service/detect unchanged
+deployment.apps/detect configured
+service/track unchanged
+statefulset.apps/track configured
+service/evaluate unchanged
+deployment.apps/evaluate unchanged
+service/gateway unchanged
+deployment.apps/gateway unchanged
+configmap/prometheus-config unchanged
+serviceaccount/prometheus unchanged
+clusterrole.rbac.authorization.k8s.io/mot17-prometheus unchanged
+clusterrolebinding.rbac.authorization.k8s.io/mot17-prometheus unchanged
+service/prometheus unchanged
+deployment.apps/prometheus unchanged
+configmap/grafana-provisioning unchanged
+configmap/grafana-dashboard unchanged
+service/grafana unchanged
+deployment.apps/grafana unchanged
+deployment.apps/detect restarted
+deployment.apps/evaluate restarted
+deployment.apps/gateway restarted
+statefulset.apps/track restarted
+Waiting for deployment "detect" rollout to finish: 1 old replicas are pending termination...
+Waiting for deployment "detect" rollout to finish: 1 old replicas are pending termination...
+deployment "detect" successfully rolled out
+Waiting for partitioned roll out to finish: 0 out of 1 new pods have been updated...
+Waiting for 1 pods to be ready...
+Waiting for 1 pods to be ready...
+Waiting for 1 pods to be ready...
+partitioned roll out complete: 1 new pods have been updated...
+deployment "evaluate" successfully rolled out
+deployment "gateway" successfully rolled out
+NAME                          READY   STATUS        RESTARTS   AGE
+detect-558d5ccc78-sgd7n       1/1     Terminating   0          14m
+detect-7867d7bd44-tk7dw       1/1     Running       0          50s
+evaluate-7c8d55f999-rwp58     1/1     Running       0          50s
+gateway-69456db5b7-x79ps      1/1     Running       0          50s
+grafana-559459fb78-chw8k      1/1     Running       0          5h11m
+prometheus-687876764f-96wcx   1/1     Running       0          5h11m
+track-0                       1/1     Running       0          22s
+
+==== 2026-11-16 03:19:49  preflight (every variant in a 1-core pod)
+[03:19:49] preflight detect yolo26n-pt-imgsz640 (1 replica x 1 core)
+[03:19:49]   kubectl patch deployment/detect: yolo26n-pt-imgsz640 batch=1 replicas=1 cores=1
+[03:20:49]     single request 118 ms, p95 at half load 150 ms, throttled 0%  OK
+[03:20:49] preflight detect yolo26n-pt-imgsz1280 (1 replica x 1 core)
+[03:20:49]   kubectl patch deployment/detect: yolo26n-pt-imgsz1280 batch=1 replicas=1 cores=1
+[03:21:56]     single request 367 ms, p95 at half load 409 ms, throttled 0%  OK
+[03:21:56] preflight detect yolo26n-onnx-imgsz640 (1 replica x 1 core)
+[03:21:56]   kubectl patch deployment/detect: yolo26n-onnx-imgsz640 batch=1 replicas=1 cores=1
+[03:22:57]     single request 139 ms, p95 at half load 182 ms, throttled 0%  OK
+[03:22:57] preflight detect yolo26n-onnx-int8-imgsz640 (1 replica x 1 core)
+[03:22:57]   kubectl patch deployment/detect: yolo26n-onnx-int8-imgsz640 batch=1 replicas=1 cores=1
+[03:23:57]     single request 180 ms, p95 at half load 196 ms, throttled 0%  OK
+[03:23:57] preflight detect fasterrcnn-mv3-320 (1 replica x 1 core)
+[03:23:57]   kubectl patch deployment/detect: fasterrcnn-mv3-320 batch=1 replicas=1 cores=1
+[03:25:01]     single request 287 ms, p95 at half load 318 ms, throttled 0%  OK
+[03:25:01] preflight detect yolo26n-pt-imgsz640 (1 replica x 2 core)
+[03:25:01]   kubectl patch deployment/detect: yolo26n-pt-imgsz640 batch=1 replicas=1 cores=2
+[03:26:01]     single request 85 ms, p95 at half load 119 ms, throttled 0%  OK
+[03:26:01] preflight track bytetrack (1 replica x 1 core)
+[03:26:01]   kubectl patch statefulset/track: bytetrack batch=1 replicas=1 cores=1
+[03:27:00]     single request 7 ms, p95 at half load 10 ms, throttled 0%  OK
+[03:27:00] preflight track bytetrack-low (1 replica x 1 core)
+[03:27:00]   kubectl patch statefulset/track: bytetrack-low batch=1 replicas=1 cores=1
+[03:28:00]     single request 8 ms, p95 at half load 10 ms, throttled 0%  OK
+[03:28:00] preflight track bytetrack-long (1 replica x 1 core)
+[03:28:00]   kubectl patch statefulset/track: bytetrack-long batch=1 replicas=1 cores=1
+[03:28:59]     single request 6 ms, p95 at half load 8 ms, throttled 0%  OK
+[03:28:59] preflight track ocsort (1 replica x 1 core)
+[03:28:59]   kubectl patch statefulset/track: ocsort batch=1 replicas=1 cores=1
+[03:29:58]     single request 7 ms, p95 at half load 11 ms, throttled 0%  OK
+[03:29:58] reference detector: 118 ms on 1 core, 85 ms on 2 cores
+[03:29:58] PREFLIGHT PASSED (10 checks) -> /home/cc/CSE8001---Object-Detection/docs/profile/preflight.json
+
+==== 2026-11-16 03:29:58  T5 SLA calibration
+[03:29:59] T5 calibration with reference {'detect': 'yolo26n-pt-imgsz640', 'track': 'bytetrack', 'batch': 1, 'replicas': 1, 'cores': 1} (1 replica x 1 core per stage)
+[03:29:59]   kubectl patch deployment/detect: yolo26n-pt-imgsz640 batch=1 replicas=1 cores=1
+[03:30:51]   kubectl patch statefulset/track: bytetrack batch=1 replicas=1 cores=1
+[03:31:44] single request 123 ms -> L0 probe: 40 requests at 0.810 rps (~10% utilization, very low load)
+[03:32:32] L0 p95 = 162.1 ms  ->  SLO p95 = 324.1 ms
+[03:32:47]     single request 122 ms; low load 1.00 rps: p50 158 p95 167 ms errors 0
+[03:32:59]         8.0 rps: p95 158 ms  errors 0  PASS
+[03:33:21]        16.0 rps: p95 9533 ms  errors 0  FAIL
+[03:33:37]        11.3 rps: p95 3402 ms  errors 0  FAIL
+[03:33:50]         9.5 rps: p95 1115 ms  errors 0  FAIL
+[03:34:02]         8.7 rps: p95 134 ms  errors 0  PASS
+[03:34:14]         9.1 rps: p95 511 ms  errors 0  FAIL
+[03:34:14] T0 = 8.7 frames/s  ->  target = 34.9 frames/s
+[03:34:14] wrote /home/cc/CSE8001---Object-Detection/docs/sla.json
+
+==== 2026-11-16 03:34:14  T6 per-stage sweep
+[03:34:15] existing T6 rows were measured with a different SLO; starting T6 fresh
+[03:34:15] T6 [1/108] detect yolo26n-pt-imgsz640 batch=1 replicas=1 cores=1   (elapsed 0 min)
+[03:34:15]   kubectl patch deployment/detect: yolo26n-pt-imgsz640 batch=1 replicas=1 cores=1
+[03:34:31]     single request 118 ms; low load 1.00 rps: p50 151 p95 156 ms errors 0
+[03:34:43]         8.3 rps: p95 117 ms  errors 0  PASS
+[03:35:05]        16.6 rps: p95 9854 ms  errors 0  FAIL
+[03:35:22]        11.7 rps: p95 4022 ms  errors 0  FAIL
+[03:35:35]         9.9 rps: p95 1283 ms  errors 0  FAIL
+[03:35:47]         9.0 rps: p95 386 ms  errors 0  FAIL
+[03:35:59]         8.7 rps: p95 149 ms  errors 0  PASS
+[03:36:00]     -> max throughput meeting SLO: 8.7 rps, p95 there 149 ms
+[03:36:00] T6 [2/108] detect yolo26n-pt-imgsz640 batch=1 replicas=2 cores=1   (elapsed 2 min)
+[03:36:00]   kubectl patch deployment/detect: yolo26n-pt-imgsz640 batch=1 replicas=2 cores=1
+[03:36:38]     single request 147 ms; low load 1.00 rps: p50 150 p95 160 ms errors 0
+[03:36:50]        16.6 rps: p95 213 ms  errors 0  PASS
+[03:37:13]        33.1 rps: p95 10443 ms  errors 0  FAIL
+[03:37:30]        23.4 rps: p95 4100 ms  errors 0  FAIL
+[03:37:44]        19.7 rps: p95 1622 ms  errors 0  FAIL
+[03:37:56]        18.1 rps: p95 580 ms  errors 0  FAIL
+[03:38:09]        17.3 rps: p95 235 ms  errors 0  PASS
+[03:38:09]     -> max throughput meeting SLO: 17.3 rps, p95 there 235 ms
+[03:38:09] T6 [3/108] detect yolo26n-pt-imgsz640 batch=1 replicas=4 cores=1   (elapsed 4 min)
+[03:38:09]   kubectl patch deployment/detect: yolo26n-pt-imgsz640 batch=1 replicas=4 cores=1
+[03:38:49]     single request 149 ms; low load 1.00 rps: p50 152 p95 157 ms errors 0
+[03:39:01]        32.6 rps: p95 156 ms  errors 0  PASS
+[03:39:25]        65.2 rps: p95 10464 ms  errors 0  FAIL
+[03:39:42]        46.1 rps: p95 4236 ms  errors 0  FAIL
+[03:39:56]        38.8 rps: p95 1855 ms  errors 0  FAIL
+[03:40:09]        35.6 rps: p95 1097 ms  errors 0  FAIL
+[03:40:21]        34.0 rps: p95 317 ms  errors 0  PASS
+[03:40:22]     -> max throughput meeting SLO: 34.0 rps, p95 there 317 ms
+[03:40:22] T6 [4/108] detect yolo26n-pt-imgsz640 batch=1 replicas=1 cores=2   (elapsed 6 min)
+[03:40:22]   kubectl patch deployment/detect: yolo26n-pt-imgsz640 batch=1 replicas=1 cores=2
+[03:41:30]     single request 100 ms; low load 1.00 rps: p50 131 p95 138 ms errors 0
+[03:41:42]         9.5 rps: p95 102 ms  errors 0  PASS
+[03:42:00]        19.1 rps: p95 5762 ms  errors 0  FAIL
+[03:42:13]        13.5 rps: p95 670 ms  errors 0  FAIL
+[03:42:25]        11.4 rps: p95 86 ms  errors 0  PASS
+[03:42:37]        12.4 rps: p95 125 ms  errors 0  PASS
+[03:42:50]        12.9 rps: p95 504 ms  errors 0  FAIL
+[03:42:50]     -> max throughput meeting SLO: 12.4 rps, p95 there 125 ms
+[03:42:50] T6 [5/108] detect yolo26n-pt-imgsz640 batch=4 replicas=1 cores=1   (elapsed 9 min)
+[03:42:50]   kubectl patch deployment/detect: yolo26n-pt-imgsz640 batch=4 replicas=1 cores=1
+[03:43:58]     single request 199 ms; low load 1.00 rps: p50 202 p95 218 ms errors 0
+[03:44:11]         8.2 rps: p95 831 ms  errors 0  FAIL
+[03:44:22]         2.9 rps: p95 200 ms  errors 0  PASS
+[03:44:34]         4.8 rps: p95 198 ms  errors 0  PASS
+[03:44:47]         6.3 rps: p95 261 ms  errors 0  PASS
+[03:44:59]         7.2 rps: p95 364 ms  errors 0  FAIL
+[03:44:59]     -> max throughput meeting SLO: 6.3 rps, p95 there 261 ms
+[03:44:59] T6 [6/108] detect yolo26n-pt-imgsz640 batch=4 replicas=2 cores=1   (elapsed 11 min)
+[03:44:59]   kubectl patch deployment/detect: yolo26n-pt-imgsz640 batch=4 replicas=2 cores=1
+[03:45:38]     single request 200 ms; low load 1.00 rps: p50 201 p95 219 ms errors 0
+[03:45:50]        16.5 rps: p95 828 ms  errors 0  FAIL
+[03:46:02]         4.1 rps: p95 201 ms  errors 0  PASS
+[03:46:14]         8.2 rps: p95 204 ms  errors 0  PASS
+[03:46:26]        11.6 rps: p95 205 ms  errors 0  PASS
+[03:46:39]        13.9 rps: p95 394 ms  errors 0  FAIL
+[03:46:39]     -> max throughput meeting SLO: 11.6 rps, p95 there 205 ms
+[03:46:39] T6 [7/108] detect yolo26n-pt-imgsz640 batch=4 replicas=4 cores=1   (elapsed 12 min)
+[03:46:39]   kubectl patch deployment/detect: yolo26n-pt-imgsz640 batch=4 replicas=4 cores=1
+[03:47:20]     single request 203 ms; low load 1.00 rps: p50 200 p95 208 ms errors 0
+[03:47:33]        33.0 rps: p95 938 ms  errors 0  FAIL
+[03:47:45]         5.7 rps: p95 205 ms  errors 0  PASS
+[03:47:57]        13.8 rps: p95 221 ms  errors 0  PASS
+[03:48:09]        21.3 rps: p95 203 ms  errors 0  PASS
+[03:48:22]        26.6 rps: p95 410 ms  errors 0  FAIL
+[03:48:23]     -> max throughput meeting SLO: 21.3 rps, p95 there 203 ms
+[03:48:23] T6 [8/108] detect yolo26n-pt-imgsz640 batch=4 replicas=1 cores=2   (elapsed 14 min)
+[03:48:23]   kubectl patch deployment/detect: yolo26n-pt-imgsz640 batch=4 replicas=1 cores=2
+[03:49:30]     single request 144 ms; low load 1.00 rps: p50 175 p95 184 ms errors 0
+[03:49:43]        10.0 rps: p95 348 ms  errors 0  FAIL
+[03:49:54]         3.2 rps: p95 175 ms  errors 0  PASS
+[03:50:06]         5.6 rps: p95 147 ms  errors 0  PASS
+[03:50:18]         7.5 rps: p95 195 ms  errors 0  PASS
+[03:50:31]         8.7 rps: p95 296 ms  errors 0  PASS
+[03:50:31]     -> max throughput meeting SLO: 8.7 rps, p95 there 296 ms
+[03:50:31] T6 [9/108] detect yolo26n-pt-imgsz640 batch=8 replicas=1 cores=1   (elapsed 16 min)
+[03:50:31]   kubectl patch deployment/detect: yolo26n-pt-imgsz640 batch=8 replicas=1 cores=1
+[03:51:39]     single request 196 ms; low load 1.00 rps: p50 199 p95 203 ms errors 0
+[03:51:52]         8.3 rps: p95 1102 ms  errors 0  FAIL
+[03:52:04]         2.9 rps: p95 204 ms  errors 0  PASS
+[03:52:16]         4.9 rps: p95 181 ms  errors 0  PASS
+[03:52:28]         6.4 rps: p95 375 ms  errors 0  FAIL
+[03:52:40]         5.6 rps: p95 205 ms  errors 0  PASS
+[03:52:41]     -> max throughput meeting SLO: 5.6 rps, p95 there 205 ms
+[03:52:41] T6 [10/108] detect yolo26n-pt-imgsz640 batch=8 replicas=2 cores=1   (elapsed 18 min)
+[03:52:41]   kubectl patch deployment/detect: yolo26n-pt-imgsz640 batch=8 replicas=2 cores=1
+[03:53:19]     single request 202 ms; low load 1.00 rps: p50 201 p95 209 ms errors 0
+[03:53:32]        16.4 rps: p95 1021 ms  errors 0  FAIL
+[03:53:44]         4.1 rps: p95 205 ms  errors 0  PASS
+[03:53:56]         8.2 rps: p95 203 ms  errors 0  PASS
+[03:54:08]        11.6 rps: p95 203 ms  errors 0  PASS
+[03:54:20]        13.8 rps: p95 412 ms  errors 0  FAIL
+[03:54:21]     -> max throughput meeting SLO: 11.6 rps, p95 there 203 ms
+[03:54:21] T6 [11/108] detect yolo26n-pt-imgsz640 batch=8 replicas=4 cores=1   (elapsed 20 min)
+[03:54:21]   kubectl patch deployment/detect: yolo26n-pt-imgsz640 batch=8 replicas=4 cores=1
+[03:55:02]     single request 203 ms; low load 1.00 rps: p50 200 p95 211 ms errors 0
+[03:55:15]        33.1 rps: p95 1124 ms  errors 0  FAIL
+[03:55:27]         5.8 rps: p95 204 ms  errors 0  PASS
+[03:55:39]        13.8 rps: p95 220 ms  errors 0  PASS
+[03:55:51]        21.4 rps: p95 241 ms  errors 0  PASS
+[03:56:04]        26.6 rps: p95 407 ms  errors 0  FAIL
+[03:56:05]     -> max throughput meeting SLO: 21.4 rps, p95 there 241 ms
+[03:56:05] T6 [12/108] detect yolo26n-pt-imgsz640 batch=8 replicas=1 cores=2   (elapsed 22 min)
+[03:56:05]   kubectl patch deployment/detect: yolo26n-pt-imgsz640 batch=8 replicas=1 cores=2
+[03:57:13]     single request 164 ms; low load 1.00 rps: p50 178 p95 187 ms errors 0
+[03:57:25]         9.8 rps: p95 437 ms  errors 0  FAIL
+[03:57:37]         3.1 rps: p95 174 ms  errors 0  PASS
+[03:57:49]         5.5 rps: p95 159 ms  errors 0  PASS
+[03:58:01]         7.3 rps: p95 161 ms  errors 0  PASS
+[03:58:14]         8.5 rps: p95 272 ms  errors 0  PASS
+[03:58:14]     -> max throughput meeting SLO: 8.5 rps, p95 there 272 ms
+[03:58:14] T6 [13/108] detect yolo26n-pt-imgsz1280 batch=1 replicas=1 cores=1   (elapsed 24 min)
+[03:58:14]   kubectl patch deployment/detect: yolo26n-pt-imgsz1280 batch=1 replicas=1 cores=1
+[03:59:30]     single request 366 ms; low load 0.68 rps: p50 400 p95 404 ms errors 0
+[03:59:30]     -> max throughput meeting SLO: 0.0 rps, p95 there 404 ms
+[03:59:30] T6 [14/108] detect yolo26n-pt-imgsz1280 batch=1 replicas=2 cores=1   (elapsed 25 min)
+[03:59:30]   kubectl patch deployment/detect: yolo26n-pt-imgsz1280 batch=1 replicas=2 cores=1
+[04:00:11]     single request 414 ms; low load 1.00 rps: p50 407 p95 429 ms errors 0
+[04:00:12]     -> max throughput meeting SLO: 0.0 rps, p95 there 429 ms
+[04:00:12] T6 [15/108] detect yolo26n-pt-imgsz1280 batch=1 replicas=4 cores=1   (elapsed 26 min)
+[04:00:12]   kubectl patch deployment/detect: yolo26n-pt-imgsz1280 batch=1 replicas=4 cores=1
+[04:00:57]     single request 405 ms; low load 1.00 rps: p50 399 p95 410 ms errors 0
+[04:00:58]     -> max throughput meeting SLO: 0.0 rps, p95 there 410 ms
+[04:00:58] T6 [16/108] detect yolo26n-pt-imgsz1280 batch=1 replicas=1 cores=2   (elapsed 27 min)
+[04:00:58]   kubectl patch deployment/detect: yolo26n-pt-imgsz1280 batch=1 replicas=1 cores=2
+[04:02:07]     single request 220 ms; low load 1.00 rps: p50 257 p95 280 ms errors 0
+[04:02:19]         4.8 rps: p95 657 ms  errors 0  FAIL
+[04:02:31]         2.2 rps: p95 266 ms  errors 0  PASS
+[04:02:43]         3.2 rps: p95 253 ms  errors 0  PASS
+[04:02:55]         3.9 rps: p95 229 ms  errors 0  PASS
+[04:03:07]         4.3 rps: p95 248 ms  errors 0  PASS
+[04:03:08]     -> max throughput meeting SLO: 4.3 rps, p95 there 248 ms
+[04:03:08] T6 [17/108] detect yolo26n-pt-imgsz1280 batch=4 replicas=1 cores=1   (elapsed 29 min)
+[04:03:08]   kubectl patch deployment/detect: yolo26n-pt-imgsz1280 batch=4 replicas=1 cores=1
+[04:04:28]     single request 424 ms; low load 0.59 rps: p50 451 p95 460 ms errors 0
+[04:04:28]     -> max throughput meeting SLO: 0.0 rps, p95 there 460 ms
+[04:04:28] T6 [18/108] detect yolo26n-pt-imgsz1280 batch=4 replicas=2 cores=1   (elapsed 30 min)
+[04:04:28]   kubectl patch deployment/detect: yolo26n-pt-imgsz1280 batch=4 replicas=2 cores=1
+[04:05:10]     single request 454 ms; low load 1.00 rps: p50 450 p95 479 ms errors 0
+[04:05:10]     -> max throughput meeting SLO: 0.0 rps, p95 there 479 ms
+[04:05:10] T6 [19/108] detect yolo26n-pt-imgsz1280 batch=4 replicas=4 cores=1   (elapsed 31 min)
+[04:05:10]   kubectl patch deployment/detect: yolo26n-pt-imgsz1280 batch=4 replicas=4 cores=1
+[04:05:55]     single request 450 ms; low load 1.00 rps: p50 449 p95 468 ms errors 0
+[04:05:56]     -> max throughput meeting SLO: 0.0 rps, p95 there 468 ms
+[04:05:56] T6 [20/108] detect yolo26n-pt-imgsz1280 batch=4 replicas=1 cores=2   (elapsed 32 min)
+[04:05:56]   kubectl patch deployment/detect: yolo26n-pt-imgsz1280 batch=4 replicas=1 cores=2
+[04:07:09]     single request 315 ms; low load 0.79 rps: p50 324 p95 342 ms errors 0
+[04:07:09]     -> max throughput meeting SLO: 0.0 rps, p95 there 342 ms
+[04:07:09] T6 [21/108] detect yolo26n-pt-imgsz1280 batch=8 replicas=1 cores=1   (elapsed 33 min)
+[04:07:09]   kubectl patch deployment/detect: yolo26n-pt-imgsz1280 batch=8 replicas=1 cores=1
+[04:08:29]     single request 413 ms; low load 0.61 rps: p50 445 p95 450 ms errors 0
+[04:08:29]     -> max throughput meeting SLO: 0.0 rps, p95 there 450 ms
+[04:08:29] T6 [22/108] detect yolo26n-pt-imgsz1280 batch=8 replicas=2 cores=1   (elapsed 34 min)
+[04:08:29]   kubectl patch deployment/detect: yolo26n-pt-imgsz1280 batch=8 replicas=2 cores=1
+[04:09:11]     single request 453 ms; low load 1.00 rps: p50 451 p95 475 ms errors 0
+[04:09:11]     -> max throughput meeting SLO: 0.0 rps, p95 there 475 ms
+[04:09:11] T6 [23/108] detect yolo26n-pt-imgsz1280 batch=8 replicas=4 cores=1   (elapsed 35 min)
+[04:09:11]   kubectl patch deployment/detect: yolo26n-pt-imgsz1280 batch=8 replicas=4 cores=1
+[04:09:56]     single request 465 ms; low load 1.00 rps: p50 462 p95 476 ms errors 0
+[04:09:58]     -> max throughput meeting SLO: 0.0 rps, p95 there 476 ms
+[04:09:58] T6 [24/108] detect yolo26n-pt-imgsz1280 batch=8 replicas=1 cores=2   (elapsed 36 min)
+[04:09:58]   kubectl patch deployment/detect: yolo26n-pt-imgsz1280 batch=8 replicas=1 cores=2
+[04:11:10]     single request 309 ms; low load 0.81 rps: p50 316 p95 339 ms errors 0
+[04:11:10]     -> max throughput meeting SLO: 0.0 rps, p95 there 339 ms
+[04:11:10] T6 [25/108] detect yolo26n-onnx-imgsz640 batch=1 replicas=1 cores=1   (elapsed 37 min)
+[04:11:10]   kubectl patch deployment/detect: yolo26n-onnx-imgsz640 batch=1 replicas=1 cores=1
+[04:12:17]     single request 143 ms; low load 1.00 rps: p50 175 p95 177 ms errors 0
+[04:12:30]         7.1 rps: p95 144 ms  errors 0  PASS
+[04:12:53]        14.1 rps: p95 11227 ms  errors 0  FAIL
+[04:13:10]        10.0 rps: p95 4573 ms  errors 0  FAIL
+[04:13:24]         8.4 rps: p95 2216 ms  errors 0  FAIL
+[04:13:37]         7.7 rps: p95 983 ms  errors 0  FAIL
+[04:13:50]         7.4 rps: p95 610 ms  errors 0  FAIL
+[04:13:50]     -> max throughput meeting SLO: 7.1 rps, p95 there 144 ms
+[04:13:50] T6 [26/108] detect yolo26n-onnx-imgsz640 batch=1 replicas=2 cores=1   (elapsed 40 min)
+[04:13:50]   kubectl patch deployment/detect: yolo26n-onnx-imgsz640 batch=1 replicas=2 cores=1
+[04:14:29]     single request 171 ms; low load 1.00 rps: p50 175 p95 178 ms errors 0
+[04:14:41]        14.1 rps: p95 166 ms  errors 0  PASS
+[04:15:05]        28.3 rps: p95 11171 ms  errors 0  FAIL
+[04:15:22]        20.0 rps: p95 4583 ms  errors 0  FAIL
+[04:15:36]        16.8 rps: p95 2181 ms  errors 0  FAIL
+[04:15:49]        15.4 rps: p95 1069 ms  errors 0  FAIL
+[04:16:02]        14.8 rps: p95 565 ms  errors 0  FAIL
+[04:16:02]     -> max throughput meeting SLO: 14.1 rps, p95 there 166 ms
+[04:16:02] T6 [27/108] detect yolo26n-onnx-imgsz640 batch=1 replicas=4 cores=1   (elapsed 42 min)
+[04:16:02]   kubectl patch deployment/detect: yolo26n-onnx-imgsz640 batch=1 replicas=4 cores=1
+[04:16:42]     single request 178 ms; low load 1.00 rps: p50 181 p95 194 ms errors 0
+[04:16:55]        27.3 rps: p95 320 ms  errors 0  PASS
+[04:17:19]        54.6 rps: p95 11336 ms  errors 0  FAIL
+[04:17:36]        38.6 rps: p95 4802 ms  errors 0  FAIL
+[04:17:51]        32.5 rps: p95 2309 ms  errors 0  FAIL
+[04:18:04]        29.8 rps: p95 1102 ms  errors 0  FAIL
+[04:18:17]        28.5 rps: p95 773 ms  errors 0  FAIL
+[04:18:18]     -> max throughput meeting SLO: 27.3 rps, p95 there 320 ms
+[04:18:18] T6 [28/108] detect yolo26n-onnx-imgsz640 batch=1 replicas=1 cores=2   (elapsed 44 min)
+[04:18:18]   kubectl patch deployment/detect: yolo26n-onnx-imgsz640 batch=1 replicas=1 cores=2
+[04:19:26]     single request 96 ms; low load 1.00 rps: p50 124 p95 137 ms errors 0
+[04:19:38]        10.1 rps: p95 97 ms  errors 0  PASS
+[04:20:01]        20.2 rps: p95 10504 ms  errors 0  FAIL
+[04:20:17]        14.3 rps: p95 3943 ms  errors 0  FAIL
+[04:20:31]        12.0 rps: p95 1605 ms  errors 0  FAIL
+[04:20:43]        11.0 rps: p95 420 ms  errors 0  FAIL
+[04:20:55]        10.6 rps: p95 160 ms  errors 0  PASS
+[04:20:55]     -> max throughput meeting SLO: 10.6 rps, p95 there 160 ms
+[04:20:55] T6 [29/108] detect yolo26n-onnx-imgsz640 batch=4 replicas=1 cores=1   (elapsed 47 min)
+[04:20:55]   kubectl patch deployment/detect: yolo26n-onnx-imgsz640 batch=4 replicas=1 cores=1
+[04:22:04]     single request 191 ms; low load 1.00 rps: p50 230 p95 242 ms errors 0
+[04:22:17]         6.9 rps: p95 997 ms  errors 0  FAIL
+[04:22:28]         2.6 rps: p95 229 ms  errors 0  PASS
+[04:22:40]         4.2 rps: p95 213 ms  errors 0  PASS
+[04:22:53]         5.4 rps: p95 287 ms  errors 0  PASS
+[04:23:05]         6.1 rps: p95 586 ms  errors 0  FAIL
+[04:23:05]     -> max throughput meeting SLO: 5.4 rps, p95 there 287 ms
+[04:23:05] T6 [30/108] detect yolo26n-onnx-imgsz640 batch=4 replicas=2 cores=1   (elapsed 49 min)
+[04:23:05]   kubectl patch deployment/detect: yolo26n-onnx-imgsz640 batch=4 replicas=2 cores=1
+[04:23:44]     single request 221 ms; low load 1.00 rps: p50 227 p95 237 ms errors 0
+[04:23:57]        14.0 rps: p95 990 ms  errors 0  FAIL
+[04:24:09]         3.7 rps: p95 234 ms  errors 0  PASS
+[04:24:21]         7.3 rps: p95 232 ms  errors 0  PASS
+[04:24:33]        10.1 rps: p95 233 ms  errors 0  PASS
+[04:24:46]        11.9 rps: p95 515 ms  errors 0  FAIL
+[04:24:46]     -> max throughput meeting SLO: 10.1 rps, p95 there 233 ms
+[04:24:46] T6 [31/108] detect yolo26n-onnx-imgsz640 batch=4 replicas=4 cores=1   (elapsed 51 min)
+[04:24:46]   kubectl patch deployment/detect: yolo26n-onnx-imgsz640 batch=4 replicas=4 cores=1
+[04:25:27]     single request 224 ms; low load 1.00 rps: p50 224 p95 227 ms errors 0
+[04:25:40]        28.4 rps: p95 1175 ms  errors 0  FAIL
+[04:25:52]         5.3 rps: p95 247 ms  errors 0  PASS
+[04:26:04]        12.3 rps: p95 234 ms  errors 0  PASS
+[04:26:16]        18.7 rps: p95 261 ms  errors 0  PASS
+[04:26:29]        23.0 rps: p95 518 ms  errors 0  FAIL
+[04:26:30]     -> max throughput meeting SLO: 18.7 rps, p95 there 261 ms
+[04:26:30] T6 [32/108] detect yolo26n-onnx-imgsz640 batch=4 replicas=1 cores=2   (elapsed 52 min)
+[04:26:30]   kubectl patch deployment/detect: yolo26n-onnx-imgsz640 batch=4 replicas=1 cores=2
+[04:27:38]     single request 167 ms; low load 1.00 rps: p50 181 p95 195 ms errors 0
+[04:27:50]         9.5 rps: p95 516 ms  errors 0  FAIL
+[04:28:02]         3.1 rps: p95 176 ms  errors 0  PASS
+[04:28:14]         5.4 rps: p95 172 ms  errors 0  PASS
+[04:28:26]         7.2 rps: p95 190 ms  errors 0  PASS
+[04:28:38]         8.3 rps: p95 323 ms  errors 0  PASS
+[04:28:39]     -> max throughput meeting SLO: 8.3 rps, p95 there 323 ms
+[04:28:39] T6 [33/108] detect yolo26n-onnx-imgsz640 batch=8 replicas=1 cores=1   (elapsed 54 min)
+[04:28:39]   kubectl patch deployment/detect: yolo26n-onnx-imgsz640 batch=8 replicas=1 cores=1
+[04:29:47]     single request 192 ms; low load 1.00 rps: p50 226 p95 262 ms errors 0
+[04:30:00]         7.0 rps: p95 1379 ms  errors 0  FAIL
+[04:30:12]         2.6 rps: p95 228 ms  errors 0  PASS
+[04:30:24]         4.3 rps: p95 203 ms  errors 0  PASS
+[04:30:36]         5.5 rps: p95 459 ms  errors 0  FAIL
+[04:30:48]         4.9 rps: p95 210 ms  errors 0  PASS
+[04:30:48]     -> max throughput meeting SLO: 4.9 rps, p95 there 210 ms
+[04:30:48] T6 [34/108] detect yolo26n-onnx-imgsz640 batch=8 replicas=2 cores=1   (elapsed 57 min)
+[04:30:48]   kubectl patch deployment/detect: yolo26n-onnx-imgsz640 batch=8 replicas=2 cores=1
+[04:31:27]     single request 225 ms; low load 1.00 rps: p50 226 p95 233 ms errors 0
+[04:31:40]        14.1 rps: p95 1736 ms  errors 0  FAIL
+[04:31:52]         3.8 rps: p95 230 ms  errors 0  PASS
+[04:32:04]         7.3 rps: p95 234 ms  errors 0  PASS
+[04:32:17]        10.1 rps: p95 223 ms  errors 0  PASS
+[04:32:29]        11.9 rps: p95 546 ms  errors 0  FAIL
+[04:32:29]     -> max throughput meeting SLO: 10.1 rps, p95 there 223 ms
+[04:32:29] T6 [35/108] detect yolo26n-onnx-imgsz640 batch=8 replicas=4 cores=1   (elapsed 58 min)
+[04:32:29]   kubectl patch deployment/detect: yolo26n-onnx-imgsz640 batch=8 replicas=4 cores=1
+[04:33:11]     single request 224 ms; low load 1.00 rps: p50 226 p95 254 ms errors 0
+[04:33:24]        28.2 rps: p95 2061 ms  errors 0  FAIL
+[04:33:36]         5.3 rps: p95 233 ms  errors 0  PASS
+[04:33:48]        12.2 rps: p95 231 ms  errors 0  PASS
+[04:34:01]        18.6 rps: p95 246 ms  errors 0  PASS
+[04:34:13]        22.9 rps: p95 518 ms  errors 0  FAIL
+[04:34:14]     -> max throughput meeting SLO: 18.6 rps, p95 there 246 ms
+[04:34:14] T6 [36/108] detect yolo26n-onnx-imgsz640 batch=8 replicas=1 cores=2   (elapsed 60 min)
+[04:34:14]   kubectl patch deployment/detect: yolo26n-onnx-imgsz640 batch=8 replicas=1 cores=2
+[04:35:22]     single request 155 ms; low load 1.00 rps: p50 186 p95 204 ms errors 0
+[04:35:34]         9.2 rps: p95 514 ms  errors 0  FAIL
+[04:35:46]         3.0 rps: p95 181 ms  errors 0  PASS
+[04:35:58]         5.3 rps: p95 163 ms  errors 0  PASS
+[04:36:10]         7.0 rps: p95 156 ms  errors 0  PASS
+[04:36:22]         8.0 rps: p95 330 ms  errors 0  FAIL
+[04:36:22]     -> max throughput meeting SLO: 7.0 rps, p95 there 156 ms
+[04:36:22] T6 [37/108] detect yolo26n-onnx-int8-imgsz640 batch=1 replicas=1 cores=1   (elapsed 62 min)
+[04:36:22]   kubectl patch deployment/detect: yolo26n-onnx-int8-imgsz640 batch=1 replicas=1 cores=1
+[04:37:30]     single request 180 ms; low load 1.00 rps: p50 213 p95 217 ms errors 0
+[04:37:43]         5.8 rps: p95 605 ms  errors 0  FAIL
+[04:37:55]         2.4 rps: p95 187 ms  errors 0  PASS
+[04:38:07]         3.7 rps: p95 193 ms  errors 0  PASS
+[04:38:19]         4.6 rps: p95 183 ms  errors 0  PASS
+[04:38:31]         5.2 rps: p95 282 ms  errors 0  PASS
+[04:38:31]     -> max throughput meeting SLO: 5.2 rps, p95 there 282 ms
+[04:38:31] T6 [38/108] detect yolo26n-onnx-int8-imgsz640 batch=1 replicas=2 cores=1   (elapsed 64 min)
+[04:38:31]   kubectl patch deployment/detect: yolo26n-onnx-int8-imgsz640 batch=1 replicas=2 cores=1
+[04:39:10]     single request 210 ms; low load 1.00 rps: p50 212 p95 217 ms errors 0
+[04:39:22]        11.6 rps: p95 486 ms  errors 0  FAIL
+[04:39:34]         3.4 rps: p95 214 ms  errors 0  PASS
+[04:39:46]         6.3 rps: p95 211 ms  errors 0  PASS
+[04:39:58]         8.5 rps: p95 209 ms  errors 0  PASS
+[04:40:10]        10.0 rps: p95 240 ms  errors 0  PASS
+[04:40:11]     -> max throughput meeting SLO: 10.0 rps, p95 there 240 ms
+[04:40:11] T6 [39/108] detect yolo26n-onnx-int8-imgsz640 batch=1 replicas=4 cores=1   (elapsed 66 min)
+[04:40:11]   kubectl patch deployment/detect: yolo26n-onnx-int8-imgsz640 batch=1 replicas=4 cores=1
+[04:40:52]     single request 212 ms; low load 1.00 rps: p50 210 p95 214 ms errors 0
+[04:41:06]        23.5 rps: p95 1474 ms  errors 0  FAIL
+[04:41:18]         4.8 rps: p95 213 ms  errors 0  PASS
+[04:41:30]        10.7 rps: p95 215 ms  errors 0  PASS
+[04:41:42]        15.8 rps: p95 204 ms  errors 0  PASS
+[04:41:54]        19.3 rps: p95 240 ms  errors 0  PASS
+[04:41:56]     -> max throughput meeting SLO: 19.3 rps, p95 there 240 ms
+[04:41:56] T6 [40/108] detect yolo26n-onnx-int8-imgsz640 batch=1 replicas=1 cores=2   (elapsed 68 min)
+[04:41:56]   kubectl patch deployment/detect: yolo26n-onnx-int8-imgsz640 batch=1 replicas=1 cores=2
+[04:43:03]     single request 128 ms; low load 1.00 rps: p50 153 p95 156 ms errors 0
+[04:43:15]         8.1 rps: p95 124 ms  errors 0  PASS
+[04:43:39]        16.2 rps: p95 11015 ms  errors 0  FAIL
+[04:43:55]        11.4 rps: p95 4430 ms  errors 0  FAIL
+[04:44:09]         9.6 rps: p95 1936 ms  errors 0  FAIL
+[04:44:22]         8.8 rps: p95 715 ms  errors 0  FAIL
+[04:44:34]         8.4 rps: p95 278 ms  errors 0  PASS
+[04:44:34]     -> max throughput meeting SLO: 8.4 rps, p95 there 278 ms
+[04:44:34] T6 [41/108] detect yolo26n-onnx-int8-imgsz640 batch=4 replicas=1 cores=1   (elapsed 70 min)
+[04:44:34]   kubectl patch deployment/detect: yolo26n-onnx-int8-imgsz640 batch=4 replicas=1 cores=1
+[04:45:43]     single request 245 ms; low load 1.00 rps: p50 261 p95 266 ms errors 0
+[04:45:56]         5.8 rps: p95 1488 ms  errors 0  FAIL
+[04:46:08]         2.4 rps: p95 268 ms  errors 0  PASS
+[04:46:20]         3.7 rps: p95 256 ms  errors 0  PASS
+[04:46:32]         4.7 rps: p95 582 ms  errors 0  FAIL
+[04:46:44]         4.2 rps: p95 275 ms  errors 0  PASS
+[04:46:44]     -> max throughput meeting SLO: 4.2 rps, p95 there 275 ms
+[04:46:44] T6 [42/108] detect yolo26n-onnx-int8-imgsz640 batch=4 replicas=2 cores=1   (elapsed 72 min)
+[04:46:44]   kubectl patch deployment/detect: yolo26n-onnx-int8-imgsz640 batch=4 replicas=2 cores=1
+[04:47:23]     single request 259 ms; low load 1.00 rps: p50 262 p95 269 ms errors 0
+[04:47:37]        11.6 rps: p95 1816 ms  errors 0  FAIL
+[04:47:49]         3.4 rps: p95 264 ms  errors 0  PASS
+[04:48:01]         6.3 rps: p95 260 ms  errors 0  PASS
+[04:48:13]         8.6 rps: p95 259 ms  errors 0  PASS
+[04:48:26]        10.0 rps: p95 720 ms  errors 0  FAIL
+[04:48:26]     -> max throughput meeting SLO: 8.6 rps, p95 there 259 ms
+[04:48:26] T6 [43/108] detect yolo26n-onnx-int8-imgsz640 batch=4 replicas=4 cores=1   (elapsed 74 min)
+[04:48:26]   kubectl patch deployment/detect: yolo26n-onnx-int8-imgsz640 batch=4 replicas=4 cores=1
+[04:49:08]     single request 256 ms; low load 1.00 rps: p50 260 p95 267 ms errors 0
+[04:49:21]        23.5 rps: p95 1982 ms  errors 0  FAIL
+[04:49:33]         4.8 rps: p95 271 ms  errors 0  PASS
+[04:49:46]        10.7 rps: p95 270 ms  errors 0  PASS
+[04:49:58]        15.8 rps: p95 271 ms  errors 0  PASS
+[04:50:11]        19.3 rps: p95 782 ms  errors 0  FAIL
+[04:50:12]     -> max throughput meeting SLO: 15.8 rps, p95 there 271 ms
+[04:50:12] T6 [44/108] detect yolo26n-onnx-int8-imgsz640 batch=4 replicas=1 cores=2   (elapsed 76 min)
+[04:50:12]   kubectl patch deployment/detect: yolo26n-onnx-int8-imgsz640 batch=4 replicas=1 cores=2
+[04:51:20]     single request 186 ms; low load 1.00 rps: p50 204 p95 208 ms errors 0
+[04:51:32]         8.1 rps: p95 849 ms  errors 0  FAIL
+[04:51:44]         2.8 rps: p95 191 ms  errors 0  PASS
+[04:51:56]         4.8 rps: p95 175 ms  errors 0  PASS
+[04:52:08]         6.2 rps: p95 398 ms  errors 0  FAIL
+[04:52:20]         5.5 rps: p95 175 ms  errors 0  PASS
+[04:52:20]     -> max throughput meeting SLO: 5.5 rps, p95 there 175 ms
+[04:52:20] T6 [45/108] detect yolo26n-onnx-int8-imgsz640 batch=8 replicas=1 cores=1   (elapsed 78 min)
+[04:52:20]   kubectl patch deployment/detect: yolo26n-onnx-int8-imgsz640 batch=8 replicas=1 cores=1
+[04:53:29]     single request 228 ms; low load 1.00 rps: p50 262 p95 276 ms errors 0
+[04:53:42]         5.8 rps: p95 1938 ms  errors 0  FAIL
+[04:53:54]         2.4 rps: p95 258 ms  errors 0  PASS
+[04:54:06]         3.7 rps: p95 244 ms  errors 0  PASS
+[04:54:19]         4.6 rps: p95 431 ms  errors 0  FAIL
+[04:54:31]         4.2 rps: p95 283 ms  errors 0  PASS
+[04:54:31]     -> max throughput meeting SLO: 4.2 rps, p95 there 283 ms
+[04:54:31] T6 [46/108] detect yolo26n-onnx-int8-imgsz640 batch=8 replicas=2 cores=1   (elapsed 80 min)
+[04:54:31]   kubectl patch deployment/detect: yolo26n-onnx-int8-imgsz640 batch=8 replicas=2 cores=1
+[04:55:10]     single request 261 ms; low load 1.00 rps: p50 261 p95 265 ms errors 0
+[04:55:23]        11.7 rps: p95 2299 ms  errors 0  FAIL
+[04:55:35]         3.4 rps: p95 275 ms  errors 0  PASS
+[04:55:48]         6.3 rps: p95 264 ms  errors 0  PASS
+[04:56:00]         8.6 rps: p95 339 ms  errors 0  FAIL
+[04:56:12]         7.4 rps: p95 250 ms  errors 0  PASS
+[04:56:12]     -> max throughput meeting SLO: 7.4 rps, p95 there 250 ms
+[04:56:12] T6 [47/108] detect yolo26n-onnx-int8-imgsz640 batch=8 replicas=4 cores=1   (elapsed 82 min)
+[04:56:12]   kubectl patch deployment/detect: yolo26n-onnx-int8-imgsz640 batch=8 replicas=4 cores=1
+[04:56:54]     single request 268 ms; low load 1.00 rps: p50 264 p95 271 ms errors 0
+[04:57:07]        23.2 rps: p95 2674 ms  errors 0  FAIL
+[04:57:20]         4.8 rps: p95 269 ms  errors 0  PASS
+[04:57:32]        10.6 rps: p95 273 ms  errors 0  PASS
+[04:57:44]        15.6 rps: p95 300 ms  errors 0  PASS
+[04:57:57]        19.0 rps: p95 1012 ms  errors 0  FAIL
+[04:57:58]     -> max throughput meeting SLO: 15.6 rps, p95 there 300 ms
+[04:57:58] T6 [48/108] detect yolo26n-onnx-int8-imgsz640 batch=8 replicas=1 cores=2   (elapsed 84 min)
+[04:57:58]   kubectl patch deployment/detect: yolo26n-onnx-int8-imgsz640 batch=8 replicas=1 cores=2
+[04:59:06]     single request 175 ms; low load 1.00 rps: p50 205 p95 209 ms errors 0
+[04:59:19]         8.0 rps: p95 1139 ms  errors 0  FAIL
+[04:59:31]         2.8 rps: p95 199 ms  errors 0  PASS
+[04:59:43]         4.7 rps: p95 185 ms  errors 0  PASS
+[04:59:55]         6.1 rps: p95 262 ms  errors 0  PASS
+[05:00:07]         7.0 rps: p95 482 ms  errors 0  FAIL
+[05:00:08]     -> max throughput meeting SLO: 6.1 rps, p95 there 262 ms
+[05:00:08] T6 [49/108] detect fasterrcnn-mv3-320 batch=1 replicas=1 cores=1   (elapsed 86 min)
+[05:00:08]   kubectl patch deployment/detect: fasterrcnn-mv3-320 batch=1 replicas=1 cores=1
+[05:01:19]     single request 294 ms; low load 0.85 rps: p50 271 p95 314 ms errors 0
+[05:01:35]         4.5 rps: p95 4280 ms  errors 0  FAIL
+[05:01:48]         2.0 rps: p95 331 ms  errors 0  FAIL
+[05:02:07]         1.3 rps: p95 331 ms  errors 0  FAIL
+[05:02:30]         1.0 rps: p95 344 ms  errors 0  FAIL
+[05:02:56]         0.9 rps: p95 341 ms  errors 0  FAIL
+[05:02:56]     -> max throughput meeting SLO: 0.9 rps, p95 there 314 ms
+[05:02:56] T6 [50/108] detect fasterrcnn-mv3-320 batch=1 replicas=2 cores=1   (elapsed 89 min)
+[05:02:56]   kubectl patch deployment/detect: fasterrcnn-mv3-320 batch=1 replicas=2 cores=1
+[05:03:36]     single request 329 ms; low load 1.00 rps: p50 321 p95 336 ms errors 0
+[05:03:36]     -> max throughput meeting SLO: 0.0 rps, p95 there 336 ms
+[05:03:36] T6 [51/108] detect fasterrcnn-mv3-320 batch=1 replicas=4 cores=1   (elapsed 89 min)
+[05:03:36]   kubectl patch deployment/detect: fasterrcnn-mv3-320 batch=1 replicas=4 cores=1
+[05:04:19]     single request 312 ms; low load 1.00 rps: p50 300 p95 349 ms errors 0
+[05:04:20]     -> max throughput meeting SLO: 0.0 rps, p95 there 349 ms
+[05:04:20] T6 [52/108] detect fasterrcnn-mv3-320 batch=1 replicas=1 cores=2   (elapsed 90 min)
+[05:04:20]   kubectl patch deployment/detect: fasterrcnn-mv3-320 batch=1 replicas=1 cores=2
+[05:05:29]     single request 168 ms; low load 1.00 rps: p50 205 p95 215 ms errors 0
+[05:05:41]         6.0 rps: p95 193 ms  errors 0  PASS
+[05:06:04]        12.0 rps: p95 11062 ms  errors 0  FAIL
+[05:06:21]         8.5 rps: p95 4430 ms  errors 0  FAIL
+[05:06:35]         7.2 rps: p95 1972 ms  errors 0  FAIL
+[05:06:48]         6.6 rps: p95 1071 ms  errors 0  FAIL
+[05:07:00]         6.3 rps: p95 340 ms  errors 0  FAIL
+[05:07:00]     -> max throughput meeting SLO: 6.0 rps, p95 there 193 ms
+[05:07:00] T6 [53/108] detect fasterrcnn-mv3-320 batch=4 replicas=1 cores=1   (elapsed 93 min)
+[05:07:00]   kubectl patch deployment/detect: fasterrcnn-mv3-320 batch=4 replicas=1 cores=1
+[05:08:15]     single request 344 ms; low load 0.73 rps: p50 328 p95 407 ms errors 0
+[05:08:15]     -> max throughput meeting SLO: 0.0 rps, p95 there 407 ms
+[05:08:15] T6 [54/108] detect fasterrcnn-mv3-320 batch=4 replicas=2 cores=1   (elapsed 94 min)
+[05:08:15]   kubectl patch deployment/detect: fasterrcnn-mv3-320 batch=4 replicas=2 cores=1
+[05:08:55]     single request 368 ms; low load 1.00 rps: p50 367 p95 391 ms errors 0
+[05:08:56]     -> max throughput meeting SLO: 0.0 rps, p95 there 391 ms
+[05:08:56] T6 [55/108] detect fasterrcnn-mv3-320 batch=4 replicas=4 cores=1   (elapsed 95 min)
+[05:08:56]   kubectl patch deployment/detect: fasterrcnn-mv3-320 batch=4 replicas=4 cores=1
+[05:09:39]     single request 376 ms; low load 1.00 rps: p50 359 p95 415 ms errors 0
+[05:09:40]     -> max throughput meeting SLO: 0.0 rps, p95 there 415 ms
+[05:09:40] T6 [56/108] detect fasterrcnn-mv3-320 batch=4 replicas=1 cores=2   (elapsed 95 min)
+[05:09:40]   kubectl patch deployment/detect: fasterrcnn-mv3-320 batch=4 replicas=1 cores=2
+[05:10:48]     single request 243 ms; low load 1.00 rps: p50 251 p95 270 ms errors 0
+[05:11:02]         6.1 rps: p95 1708 ms  errors 0  FAIL
+[05:11:14]         2.5 rps: p95 274 ms  errors 0  PASS
+[05:11:26]         3.9 rps: p95 244 ms  errors 0  PASS
+[05:11:38]         4.9 rps: p95 524 ms  errors 0  FAIL
+[05:11:50]         4.3 rps: p95 238 ms  errors 0  PASS
+[05:11:50]     -> max throughput meeting SLO: 4.3 rps, p95 there 238 ms
+[05:11:50] T6 [57/108] detect fasterrcnn-mv3-320 batch=8 replicas=1 cores=1   (elapsed 98 min)
+[05:11:50]   kubectl patch deployment/detect: fasterrcnn-mv3-320 batch=8 replicas=1 cores=1
+[05:13:05]     single request 349 ms; low load 0.72 rps: p50 327 p95 367 ms errors 0
+[05:13:05]     -> max throughput meeting SLO: 0.0 rps, p95 there 367 ms
+[05:13:05] T6 [58/108] detect fasterrcnn-mv3-320 batch=8 replicas=2 cores=1   (elapsed 99 min)
+[05:13:05]   kubectl patch deployment/detect: fasterrcnn-mv3-320 batch=8 replicas=2 cores=1
+[05:13:46]     single request 364 ms; low load 1.00 rps: p50 373 p95 386 ms errors 0
+[05:13:47]     -> max throughput meeting SLO: 0.0 rps, p95 there 386 ms
+[05:13:47] T6 [59/108] detect fasterrcnn-mv3-320 batch=8 replicas=4 cores=1   (elapsed 100 min)
+[05:13:47]   kubectl patch deployment/detect: fasterrcnn-mv3-320 batch=8 replicas=4 cores=1
+[05:14:30]     single request 370 ms; low load 1.00 rps: p50 359 p95 382 ms errors 0
+[05:14:31]     -> max throughput meeting SLO: 0.0 rps, p95 there 382 ms
+[05:14:31] T6 [60/108] detect fasterrcnn-mv3-320 batch=8 replicas=1 cores=2   (elapsed 100 min)
+[05:14:31]   kubectl patch deployment/detect: fasterrcnn-mv3-320 batch=8 replicas=1 cores=2
+[05:15:39]     single request 228 ms; low load 1.00 rps: p50 252 p95 283 ms errors 0
+[05:15:53]         6.1 rps: p95 2588 ms  errors 0  FAIL
+[05:16:05]         2.5 rps: p95 252 ms  errors 0  PASS
+[05:16:17]         3.9 rps: p95 243 ms  errors 0  PASS
+[05:16:29]         4.9 rps: p95 524 ms  errors 0  FAIL
+[05:16:41]         4.3 rps: p95 239 ms  errors 0  PASS
+[05:16:41]     -> max throughput meeting SLO: 4.3 rps, p95 there 239 ms
+[05:16:41] T6 [61/108] track bytetrack batch=1 replicas=1 cores=1   (elapsed 102 min)
+[05:16:41]   kubectl patch statefulset/track: bytetrack batch=1 replicas=1 cores=1
+[05:16:56]     single request 7 ms; low load 1.00 rps: p50 8 p95 13 ms errors 0
+[05:17:14]       245.5 rps: p95 4829 ms  errors 0  FAIL
+[05:17:26]        15.7 rps: p95 9 ms  errors 0  PASS
+[05:17:38]        62.0 rps: p95 8 ms  errors 0  PASS
+[05:17:50]       123.4 rps: p95 10 ms  errors 0  PASS
+[05:18:02]       174.1 rps: p95 658 ms  errors 0  FAIL
+[05:18:03]     -> max throughput meeting SLO: 123.4 rps, p95 there 10 ms
+[05:18:03] T6 [62/108] track bytetrack batch=1 replicas=2 cores=1   (elapsed 104 min)
+[05:18:03]   kubectl patch statefulset/track: bytetrack batch=1 replicas=2 cores=1
+[05:18:39]     single request 4 ms; low load 1.00 rps: p50 9 p95 10 ms errors 0
+[05:18:49]       400.0 rps: p95 2554 ms  errors 0  FAIL
+[05:19:01]        20.0 rps: p95 9 ms  errors 0  PASS
+[05:19:14]        89.4 rps: p95 9 ms  errors 0  PASS
+[05:19:26]       189.1 rps: p95 11 ms  errors 0  PASS
+[05:19:39]       275.1 rps: p95 2028 ms  errors 0  FAIL
+[05:19:39]     -> max throughput meeting SLO: 189.1 rps, p95 there 11 ms
+[05:19:39] T6 [63/108] track bytetrack batch=1 replicas=4 cores=1   (elapsed 105 min)
+[05:19:39]   kubectl patch statefulset/track: bytetrack batch=1 replicas=4 cores=1
+[05:20:37]     single request 8 ms; low load 1.00 rps: p50 9 p95 9 ms errors 0
+[05:20:45]       400.0 rps: p95 46 ms  errors 0  PASS
+[05:20:46]     -> max throughput meeting SLO: 400.0 rps, p95 there 46 ms
+[05:20:46] T6 [64/108] track bytetrack batch=1 replicas=1 cores=2   (elapsed 107 min)
+[05:20:46]   kubectl patch statefulset/track: bytetrack batch=1 replicas=1 cores=2
+[05:23:26]     single request 8 ms; low load 1.00 rps: p50 9 p95 10 ms errors 0
+[05:23:39]       232.2 rps: p95 157 ms  errors 0  PASS
+[05:23:52]       400.0 rps: p95 5942 ms  errors 0  FAIL
+[05:24:06]       304.8 rps: p95 3398 ms  errors 0  FAIL
+[05:24:18]       266.0 rps: p95 1244 ms  errors 0  FAIL
+[05:24:31]       248.5 rps: p95 689 ms  errors 0  FAIL
+[05:24:32]     -> max throughput meeting SLO: 232.2 rps, p95 there 157 ms
+[05:24:32] T6 [65/108] track bytetrack batch=4 replicas=1 cores=1   (elapsed 110 min)
+[05:24:32]   kubectl patch statefulset/track: bytetrack batch=4 replicas=1 cores=1
+[05:25:39]     single request 27 ms; low load 1.00 rps: p50 29 p95 30 ms errors 0
+[05:25:55]       227.3 rps: p95 3738 ms  errors 0  FAIL
+[05:26:07]        15.1 rps: p95 29 ms  errors 0  PASS
+[05:26:19]        58.5 rps: p95 33 ms  errors 0  PASS
+[05:26:31]       115.4 rps: p95 51 ms  errors 0  PASS
+[05:26:43]       161.9 rps: p95 325 ms  errors 0  FAIL
+[05:26:43]     -> max throughput meeting SLO: 115.4 rps, p95 there 51 ms
+[05:26:43] T6 [66/108] track bytetrack batch=4 replicas=2 cores=1   (elapsed 112 min)
+[05:26:43]   kubectl patch statefulset/track: bytetrack batch=4 replicas=2 cores=1
+[05:27:20]     single request 26 ms; low load 1.00 rps: p50 29 p95 30 ms errors 0
+[05:27:31]       400.0 rps: p95 2539 ms  errors 0  FAIL
+[05:27:43]        20.0 rps: p95 29 ms  errors 0  PASS
+[05:27:55]        89.4 rps: p95 52 ms  errors 0  PASS
+[05:28:07]       189.1 rps: p95 55 ms  errors 0  PASS
+[05:28:18]       275.1 rps: p95 474 ms  errors 0  FAIL
+[05:28:19]     -> max throughput meeting SLO: 189.1 rps, p95 there 55 ms
+[05:28:19] T6 [67/108] track bytetrack batch=4 replicas=4 cores=1   (elapsed 114 min)
+[05:28:19]   kubectl patch statefulset/track: bytetrack batch=4 replicas=4 cores=1
+[05:29:17]     single request 28 ms; low load 1.00 rps: p50 29 p95 29 ms errors 0
+[05:29:26]       400.0 rps: p95 597 ms  errors 0  FAIL
+[05:29:38]        20.0 rps: p95 29 ms  errors 0  PASS
+[05:29:50]        89.4 rps: p95 33 ms  errors 0  PASS
+[05:30:02]       189.1 rps: p95 44 ms  errors 0  PASS
+[05:30:13]       275.1 rps: p95 65 ms  errors 0  PASS
+[05:30:14]     -> max throughput meeting SLO: 275.1 rps, p95 there 65 ms
+[05:30:14] T6 [68/108] track bytetrack batch=4 replicas=1 cores=2   (elapsed 116 min)
+[05:30:14]   kubectl patch statefulset/track: bytetrack batch=4 replicas=1 cores=2
+[05:32:54]     single request 27 ms; low load 1.00 rps: p50 29 p95 30 ms errors 0
+[05:33:07]       249.9 rps: p95 816 ms  errors 0  FAIL
+[05:33:19]        15.8 rps: p95 29 ms  errors 0  PASS
+[05:33:31]        62.9 rps: p95 34 ms  errors 0  PASS
+[05:33:44]       125.3 rps: p95 48 ms  errors 0  PASS
+[05:33:56]       177.0 rps: p95 45 ms  errors 0  PASS
+[05:33:56]     -> max throughput meeting SLO: 177.0 rps, p95 there 45 ms
+[05:33:56] T6 [69/108] track bytetrack batch=8 replicas=1 cores=1   (elapsed 120 min)
+[05:33:56]   kubectl patch statefulset/track: bytetrack batch=8 replicas=1 cores=1
+[05:35:03]     single request 27 ms; low load 1.00 rps: p50 29 p95 30 ms errors 0
+[05:35:18]       228.0 rps: p95 2597 ms  errors 0  FAIL
+[05:35:30]        15.1 rps: p95 29 ms  errors 0  PASS
+[05:35:42]        58.7 rps: p95 36 ms  errors 0  PASS
+[05:35:54]       115.6 rps: p95 78 ms  errors 0  PASS
+[05:36:06]       162.4 rps: p95 133 ms  errors 0  PASS
+[05:36:06]     -> max throughput meeting SLO: 162.4 rps, p95 there 133 ms
+[05:36:06] T6 [70/108] track bytetrack batch=8 replicas=2 cores=1   (elapsed 122 min)
+[05:36:06]   kubectl patch statefulset/track: bytetrack batch=8 replicas=2 cores=1
+[05:36:43]     single request 29 ms; low load 1.00 rps: p50 29 p95 30 ms errors 0
+[05:36:56]       400.0 rps: p95 5119 ms  errors 0  FAIL
+[05:37:08]        20.0 rps: p95 29 ms  errors 0  PASS
+[05:37:20]        89.4 rps: p95 51 ms  errors 0  PASS
+[05:37:33]       189.1 rps: p95 71 ms  errors 0  PASS
+[05:37:44]       275.1 rps: p95 650 ms  errors 0  FAIL
+[05:37:44]     -> max throughput meeting SLO: 189.1 rps, p95 there 71 ms
+[05:37:44] T6 [71/108] track bytetrack batch=8 replicas=4 cores=1   (elapsed 123 min)
+[05:37:44]   kubectl patch statefulset/track: bytetrack batch=8 replicas=4 cores=1
+[05:38:43]     single request 27 ms; low load 1.00 rps: p50 29 p95 31 ms errors 0
+[05:38:50]       400.0 rps: p95 1404 ms  errors 0  FAIL
+[05:39:02]        20.0 rps: p95 30 ms  errors 0  PASS
+[05:39:15]        89.4 rps: p95 32 ms  errors 0  PASS
+[05:39:27]       189.1 rps: p95 58 ms  errors 0  PASS
+[05:39:38]       275.1 rps: p95 73 ms  errors 0  PASS
+[05:39:39]     -> max throughput meeting SLO: 275.1 rps, p95 there 73 ms
+[05:39:39] T6 [72/108] track bytetrack batch=8 replicas=1 cores=2   (elapsed 125 min)
+[05:39:39]   kubectl patch statefulset/track: bytetrack batch=8 replicas=1 cores=2
+[05:42:19]     single request 27 ms; low load 1.00 rps: p50 29 p95 29 ms errors 0
+[05:42:32]       243.6 rps: p95 288 ms  errors 0  PASS
+[05:42:44]       400.0 rps: p95 4176 ms  errors 0  FAIL
+[05:42:56]       312.1 rps: p95 2379 ms  errors 0  FAIL
+[05:43:08]       275.7 rps: p95 1146 ms  errors 0  FAIL
+[05:43:20]       259.1 rps: p95 576 ms  errors 0  FAIL
+[05:43:21]     -> max throughput meeting SLO: 243.6 rps, p95 there 288 ms
+[05:43:21] T6 [73/108] track bytetrack-low batch=1 replicas=1 cores=1   (elapsed 129 min)
+[05:43:21]   kubectl patch statefulset/track: bytetrack-low batch=1 replicas=1 cores=1
+[05:44:28]     single request 10 ms; low load 1.00 rps: p50 10 p95 11 ms errors 0
+[05:44:41]       178.9 rps: p95 1226 ms  errors 0  FAIL
+[05:44:53]        13.4 rps: p95 11 ms  errors 0  PASS
+[05:45:05]        48.9 rps: p95 10 ms  errors 0  PASS
+[05:45:17]        93.6 rps: p95 12 ms  errors 0  PASS
+[05:45:29]       129.4 rps: p95 11 ms  errors 0  PASS
+[05:45:30]     -> max throughput meeting SLO: 129.4 rps, p95 there 11 ms
+[05:45:30] T6 [74/108] track bytetrack-low batch=1 replicas=2 cores=1   (elapsed 131 min)
+[05:45:30]   kubectl patch statefulset/track: bytetrack-low batch=1 replicas=2 cores=1
+[05:46:06]     single request 8 ms; low load 1.00 rps: p50 10 p95 12 ms errors 0
+[05:46:16]       343.5 rps: p95 1234 ms  errors 0  FAIL
+[05:46:28]        18.5 rps: p95 10 ms  errors 0  PASS
+[05:46:40]        79.8 rps: p95 10 ms  errors 0  PASS
+[05:46:53]       165.6 rps: p95 13 ms  errors 0  PASS
+[05:47:05]       238.5 rps: p95 81 ms  errors 0  PASS
+[05:47:05]     -> max throughput meeting SLO: 238.5 rps, p95 there 81 ms
+[05:47:05] T6 [75/108] track bytetrack-low batch=1 replicas=4 cores=1   (elapsed 133 min)
+[05:47:05]   kubectl patch statefulset/track: bytetrack-low batch=1 replicas=4 cores=1
+[05:48:03]     single request 9 ms; low load 1.00 rps: p50 11 p95 15 ms errors 0
+[05:48:12]       400.0 rps: p95 762 ms  errors 0  FAIL
+[05:48:24]        20.0 rps: p95 10 ms  errors 0  PASS
+[05:48:36]        89.4 rps: p95 10 ms  errors 0  PASS
+[05:48:48]       189.1 rps: p95 13 ms  errors 0  PASS
+[05:48:59]       275.1 rps: p95 882 ms  errors 0  FAIL
+[05:49:00]     -> max throughput meeting SLO: 189.1 rps, p95 there 13 ms
+[05:49:00] T6 [76/108] track bytetrack-low batch=1 replicas=1 cores=2   (elapsed 135 min)
+[05:49:00]   kubectl patch statefulset/track: bytetrack-low batch=1 replicas=1 cores=2
+[05:51:40]     single request 9 ms; low load 1.00 rps: p50 11 p95 12 ms errors 0
+[05:51:53]       168.4 rps: p95 37 ms  errors 0  PASS
+[05:52:08]       336.7 rps: p95 6154 ms  errors 0  FAIL
+[05:52:22]       238.1 rps: p95 2145 ms  errors 0  FAIL
+[05:52:35]       200.2 rps: p95 221 ms  errors 0  PASS
+[05:52:47]       218.3 rps: p95 854 ms  errors 0  FAIL
+[05:53:00]       209.1 rps: p95 914 ms  errors 0  FAIL
+[05:53:01]     -> max throughput meeting SLO: 200.2 rps, p95 there 221 ms
+[05:53:01] T6 [77/108] track bytetrack-low batch=4 replicas=1 cores=1   (elapsed 139 min)
+[05:53:01]   kubectl patch statefulset/track: bytetrack-low batch=4 replicas=1 cores=1
+[05:54:08]     single request 29 ms; low load 1.00 rps: p50 31 p95 33 ms errors 0
+[05:54:21]       177.8 rps: p95 673 ms  errors 0  FAIL
+[05:54:33]        13.3 rps: p95 31 ms  errors 0  PASS
+[05:54:45]        48.7 rps: p95 42 ms  errors 0  PASS
+[05:54:57]        93.0 rps: p95 62 ms  errors 0  PASS
+[05:55:09]       128.6 rps: p95 48 ms  errors 0  PASS
+[05:55:09]     -> max throughput meeting SLO: 128.6 rps, p95 there 48 ms
+[05:55:09] T6 [78/108] track bytetrack-low batch=4 replicas=2 cores=1   (elapsed 141 min)
+[05:55:09]   kubectl patch statefulset/track: bytetrack-low batch=4 replicas=2 cores=1
+[05:55:46]     single request 29 ms; low load 1.00 rps: p50 30 p95 33 ms errors 0
+[05:55:57]       358.2 rps: p95 3067 ms  errors 0  FAIL
+[05:56:09]        18.9 rps: p95 31 ms  errors 0  PASS
+[05:56:21]        82.3 rps: p95 58 ms  errors 0  PASS
+[05:56:34]       171.7 rps: p95 62 ms  errors 0  PASS
+[05:56:46]       248.0 rps: p95 339 ms  errors 0  FAIL
+[05:56:47]     -> max throughput meeting SLO: 171.7 rps, p95 there 62 ms
+[05:56:47] T6 [79/108] track bytetrack-low batch=4 replicas=4 cores=1   (elapsed 143 min)
+[05:56:47]   kubectl patch statefulset/track: bytetrack-low batch=4 replicas=4 cores=1
+[05:57:45]     single request 27 ms; low load 1.00 rps: p50 31 p95 33 ms errors 0
+[05:57:53]       400.0 rps: p95 529 ms  errors 0  FAIL
+[05:58:05]        20.0 rps: p95 30 ms  errors 0  PASS
+[05:58:17]        89.4 rps: p95 48 ms  errors 0  PASS
+[05:58:29]       189.1 rps: p95 49 ms  errors 0  PASS
+[05:58:40]       275.1 rps: p95 60 ms  errors 0  PASS
+[05:58:41]     -> max throughput meeting SLO: 275.1 rps, p95 there 60 ms
+[05:58:41] T6 [80/108] track bytetrack-low batch=4 replicas=1 cores=2   (elapsed 144 min)
+[05:58:41]   kubectl patch statefulset/track: bytetrack-low batch=4 replicas=1 cores=2
+[06:01:22]     single request 29 ms; low load 1.00 rps: p50 30 p95 32 ms errors 0
+[06:01:34]       180.3 rps: p95 52 ms  errors 0  PASS
+[06:01:49]       360.7 rps: p95 6361 ms  errors 0  FAIL
+[06:02:03]       255.0 rps: p95 2380 ms  errors 0  FAIL
+[06:02:15]       214.5 rps: p95 254 ms  errors 0  PASS
+[06:02:28]       233.9 rps: p95 853 ms  errors 0  FAIL
+[06:02:41]       224.0 rps: p95 341 ms  errors 0  FAIL
+[06:02:41]     -> max throughput meeting SLO: 214.5 rps, p95 there 254 ms
+[06:02:41] T6 [81/108] track bytetrack-low batch=8 replicas=1 cores=1   (elapsed 148 min)
+[06:02:41]   kubectl patch statefulset/track: bytetrack-low batch=8 replicas=1 cores=1
+[06:03:48]     single request 29 ms; low load 1.00 rps: p50 31 p95 32 ms errors 0
+[06:04:01]       167.0 rps: p95 262 ms  errors 0  PASS
+[06:04:18]       334.0 rps: p95 8216 ms  errors 0  FAIL
+[06:04:35]       236.2 rps: p95 4542 ms  errors 0  FAIL
+[06:04:49]       198.6 rps: p95 2117 ms  errors 0  FAIL
+[06:05:02]       182.1 rps: p95 902 ms  errors 0  FAIL
+[06:05:14]       174.4 rps: p95 789 ms  errors 0  FAIL
+[06:05:15]     -> max throughput meeting SLO: 167.0 rps, p95 there 262 ms
+[06:05:15] T6 [82/108] track bytetrack-low batch=8 replicas=2 cores=1   (elapsed 151 min)
+[06:05:15]   kubectl patch statefulset/track: bytetrack-low batch=8 replicas=2 cores=1
+[06:05:51]     single request 29 ms; low load 1.00 rps: p50 31 p95 32 ms errors 0
+[06:06:02]       358.7 rps: p95 2195 ms  errors 0  FAIL
+[06:06:14]        18.9 rps: p95 30 ms  errors 0  PASS
+[06:06:26]        82.4 rps: p95 36 ms  errors 0  PASS
+[06:06:38]       172.0 rps: p95 104 ms  errors 0  PASS
+[06:06:51]       248.4 rps: p95 1623 ms  errors 0  FAIL
+[06:06:52]     -> max throughput meeting SLO: 172.0 rps, p95 there 104 ms
+[06:06:52] T6 [83/108] track bytetrack-low batch=8 replicas=4 cores=1   (elapsed 153 min)
+[06:06:52]   kubectl patch statefulset/track: bytetrack-low batch=8 replicas=4 cores=1
+[06:07:50]     single request 29 ms; low load 1.00 rps: p50 31 p95 31 ms errors 0
+[06:07:58]       400.0 rps: p95 610 ms  errors 0  FAIL
+[06:08:10]        20.0 rps: p95 31 ms  errors 0  PASS
+[06:08:22]        89.4 rps: p95 39 ms  errors 0  PASS
+[06:08:35]       189.1 rps: p95 68 ms  errors 0  PASS
+[06:08:46]       275.1 rps: p95 86 ms  errors 0  PASS
+[06:08:47]     -> max throughput meeting SLO: 275.1 rps, p95 there 86 ms
+[06:08:47] T6 [84/108] track bytetrack-low batch=8 replicas=1 cores=2   (elapsed 155 min)
+[06:08:47]   kubectl patch statefulset/track: bytetrack-low batch=8 replicas=1 cores=2
+[06:11:27]     single request 29 ms; low load 1.00 rps: p50 31 p95 32 ms errors 0
+[06:11:39]       161.4 rps: p95 88 ms  errors 0  PASS
+[06:11:53]       322.8 rps: p95 4764 ms  errors 0  FAIL
+[06:12:06]       228.3 rps: p95 926 ms  errors 0  FAIL
+[06:12:19]       192.0 rps: p95 97 ms  errors 0  PASS
+[06:12:31]       209.3 rps: p95 567 ms  errors 0  FAIL
+[06:12:43]       200.5 rps: p95 109 ms  errors 0  PASS
+[06:12:44]     -> max throughput meeting SLO: 200.5 rps, p95 there 109 ms
+[06:12:44] T6 [85/108] track bytetrack-long batch=1 replicas=1 cores=1   (elapsed 158 min)
+[06:12:44]   kubectl patch statefulset/track: bytetrack-long batch=1 replicas=1 cores=1
+[06:13:50]     single request 7 ms; low load 1.00 rps: p50 9 p95 10 ms errors 0
+[06:14:07]       243.0 rps: p95 4809 ms  errors 0  FAIL
+[06:14:19]        15.6 rps: p95 8 ms  errors 0  PASS
+[06:14:32]        61.5 rps: p95 9 ms  errors 0  PASS
+[06:14:44]       122.3 rps: p95 8 ms  errors 0  PASS
+[06:14:56]       172.4 rps: p95 252 ms  errors 0  PASS
+[06:14:56]     -> max throughput meeting SLO: 172.4 rps, p95 there 252 ms
+[06:14:56] T6 [86/108] track bytetrack-long batch=1 replicas=2 cores=1   (elapsed 161 min)
+[06:14:56]   kubectl patch statefulset/track: bytetrack-long batch=1 replicas=2 cores=1
+[06:15:33]     single request 7 ms; low load 1.00 rps: p50 8 p95 9 ms errors 0
+[06:15:42]       400.0 rps: p95 1690 ms  errors 0  FAIL
+[06:15:54]        20.0 rps: p95 9 ms  errors 0  PASS
+[06:16:06]        89.4 rps: p95 8 ms  errors 0  PASS
+[06:16:19]       189.1 rps: p95 13 ms  errors 0  PASS
+[06:16:30]       275.1 rps: p95 477 ms  errors 0  FAIL
+[06:16:31]     -> max throughput meeting SLO: 189.1 rps, p95 there 13 ms
+[06:16:31] T6 [87/108] track bytetrack-long batch=1 replicas=4 cores=1   (elapsed 162 min)
+[06:16:31]   kubectl patch statefulset/track: bytetrack-long batch=1 replicas=4 cores=1
+[06:17:29]     single request 7 ms; low load 1.00 rps: p50 8 p95 11 ms errors 0
+[06:17:37]       400.0 rps: p95 91 ms  errors 0  PASS
+[06:17:38]     -> max throughput meeting SLO: 400.0 rps, p95 there 91 ms
+[06:17:38] T6 [88/108] track bytetrack-long batch=1 replicas=1 cores=2   (elapsed 163 min)
+[06:17:38]   kubectl patch statefulset/track: bytetrack-long batch=1 replicas=1 cores=2
+[06:20:18]     single request 7 ms; low load 1.00 rps: p50 8 p95 9 ms errors 0
+[06:20:30]       244.9 rps: p95 465 ms  errors 0  FAIL
+[06:20:42]        15.7 rps: p95 9 ms  errors 0  PASS
+[06:20:54]        61.9 rps: p95 9 ms  errors 0  PASS
+[06:21:06]       123.2 rps: p95 9 ms  errors 0  PASS
+[06:21:19]       173.7 rps: p95 14 ms  errors 0  PASS
+[06:21:19]     -> max throughput meeting SLO: 173.7 rps, p95 there 14 ms
+[06:21:19] T6 [89/108] track bytetrack-long batch=4 replicas=1 cores=1   (elapsed 167 min)
+[06:21:19]   kubectl patch statefulset/track: bytetrack-long batch=4 replicas=1 cores=1
+[06:22:26]     single request 28 ms; low load 1.00 rps: p50 28 p95 29 ms errors 0
+[06:22:44]       262.7 rps: p95 5935 ms  errors 0  FAIL
+[06:22:56]        16.2 rps: p95 29 ms  errors 0  PASS
+[06:23:08]        65.3 rps: p95 41 ms  errors 0  PASS
+[06:23:20]       130.9 rps: p95 46 ms  errors 0  PASS
+[06:23:33]       185.5 rps: p95 449 ms  errors 0  FAIL
+[06:23:33]     -> max throughput meeting SLO: 130.9 rps, p95 there 46 ms
+[06:23:33] T6 [90/108] track bytetrack-long batch=4 replicas=2 cores=1   (elapsed 169 min)
+[06:23:33]   kubectl patch statefulset/track: bytetrack-long batch=4 replicas=2 cores=1
+[06:24:10]     single request 28 ms; low load 1.00 rps: p50 29 p95 30 ms errors 0
+[06:24:21]       400.0 rps: p95 2989 ms  errors 0  FAIL
+[06:24:33]        20.0 rps: p95 29 ms  errors 0  PASS
+[06:24:45]        89.4 rps: p95 49 ms  errors 0  PASS
+[06:24:57]       189.1 rps: p95 120 ms  errors 0  PASS
+[06:25:09]       275.1 rps: p95 498 ms  errors 0  FAIL
+[06:25:09]     -> max throughput meeting SLO: 189.1 rps, p95 there 120 ms
+[06:25:09] T6 [91/108] track bytetrack-long batch=4 replicas=4 cores=1   (elapsed 171 min)
+[06:25:09]   kubectl patch statefulset/track: bytetrack-long batch=4 replicas=4 cores=1
+[06:26:07]     single request 27 ms; low load 1.00 rps: p50 29 p95 30 ms errors 0
+[06:26:15]       400.0 rps: p95 58 ms  errors 0  PASS
+[06:26:16]     -> max throughput meeting SLO: 400.0 rps, p95 there 58 ms
+[06:26:16] T6 [92/108] track bytetrack-long batch=4 replicas=1 cores=2   (elapsed 172 min)
+[06:26:16]   kubectl patch statefulset/track: bytetrack-long batch=4 replicas=1 cores=2
+[06:28:57]     single request 27 ms; low load 1.00 rps: p50 29 p95 31 ms errors 0
+[06:29:09]       243.2 rps: p95 52 ms  errors 0  PASS
+[06:29:22]       400.0 rps: p95 4879 ms  errors 0  FAIL
+[06:29:34]       311.9 rps: p95 2107 ms  errors 0  FAIL
+[06:29:46]       275.4 rps: p95 1307 ms  errors 0  FAIL
+[06:29:58]       258.8 rps: p95 586 ms  errors 0  FAIL
+[06:29:58]     -> max throughput meeting SLO: 243.2 rps, p95 there 52 ms
+[06:29:58] T6 [93/108] track bytetrack-long batch=8 replicas=1 cores=1   (elapsed 176 min)
+[06:29:58]   kubectl patch statefulset/track: bytetrack-long batch=8 replicas=1 cores=1
+[06:31:05]     single request 28 ms; low load 1.00 rps: p50 29 p95 30 ms errors 0
+[06:31:20]       233.4 rps: p95 2244 ms  errors 0  FAIL
+[06:31:32]        15.3 rps: p95 30 ms  errors 0  PASS
+[06:31:44]        59.7 rps: p95 37 ms  errors 0  PASS
+[06:31:56]       118.0 rps: p95 74 ms  errors 0  PASS
+[06:32:08]       166.0 rps: p95 76 ms  errors 0  PASS
+[06:32:08]     -> max throughput meeting SLO: 166.0 rps, p95 there 76 ms
+[06:32:08] T6 [94/108] track bytetrack-long batch=8 replicas=2 cores=1   (elapsed 178 min)
+[06:32:08]   kubectl patch statefulset/track: bytetrack-long batch=8 replicas=2 cores=1
+[06:32:45]     single request 28 ms; low load 1.00 rps: p50 29 p95 31 ms errors 0
+[06:32:54]       400.0 rps: p95 1821 ms  errors 0  FAIL
+[06:33:06]        20.0 rps: p95 30 ms  errors 0  PASS
+[06:33:19]        89.4 rps: p95 35 ms  errors 0  PASS
+[06:33:31]       189.1 rps: p95 75 ms  errors 0  PASS
+[06:33:42]       275.1 rps: p95 76 ms  errors 0  PASS
+[06:33:43]     -> max throughput meeting SLO: 275.1 rps, p95 there 76 ms
+[06:33:43] T6 [95/108] track bytetrack-long batch=8 replicas=4 cores=1   (elapsed 179 min)
+[06:33:43]   kubectl patch statefulset/track: bytetrack-long batch=8 replicas=4 cores=1
+[06:34:41]     single request 30 ms; low load 1.00 rps: p50 29 p95 31 ms errors 0
+[06:34:49]       400.0 rps: p95 209 ms  errors 0  PASS
+[06:34:50]     -> max throughput meeting SLO: 400.0 rps, p95 there 209 ms
+[06:34:50] T6 [96/108] track bytetrack-long batch=8 replicas=1 cores=2   (elapsed 181 min)
+[06:34:50]   kubectl patch statefulset/track: bytetrack-long batch=8 replicas=1 cores=2
+[06:37:31]     single request 29 ms; low load 1.00 rps: p50 29 p95 30 ms errors 0
+[06:37:43]       236.9 rps: p95 94 ms  errors 0  PASS
+[06:37:55]       400.0 rps: p95 4108 ms  errors 0  FAIL
+[06:38:07]       307.8 rps: p95 2233 ms  errors 0  FAIL
+[06:38:19]       270.1 rps: p95 894 ms  errors 0  FAIL
+[06:38:32]       252.9 rps: p95 340 ms  errors 0  FAIL
+[06:38:32]     -> max throughput meeting SLO: 236.9 rps, p95 there 94 ms
+[06:38:32] T6 [97/108] track ocsort batch=1 replicas=1 cores=1   (elapsed 184 min)
+[06:38:32]   kubectl patch statefulset/track: ocsort batch=1 replicas=1 cores=1
+[06:39:39]     single request 7 ms; low load 1.00 rps: p50 10 p95 15 ms errors 0
+[06:39:56]       173.8 rps: p95 4913 ms  errors 0  FAIL
+[06:40:08]        13.2 rps: p95 14 ms  errors 0  PASS
+[06:40:20]        47.9 rps: p95 12 ms  errors 0  PASS
+[06:40:32]        91.2 rps: p95 12 ms  errors 0  PASS
+[06:40:45]       125.9 rps: p95 210 ms  errors 0  PASS
+[06:40:45]     -> max throughput meeting SLO: 125.9 rps, p95 there 210 ms
+[06:40:45] T6 [98/108] track ocsort batch=1 replicas=2 cores=1   (elapsed 186 min)
+[06:40:45]   kubectl patch statefulset/track: ocsort batch=1 replicas=2 cores=1
+[06:41:22]     single request 8 ms; low load 1.00 rps: p50 11 p95 14 ms errors 0
+[06:41:35]       321.3 rps: p95 3896 ms  errors 0  FAIL
+[06:41:47]        17.9 rps: p95 13 ms  errors 0  PASS
+[06:42:00]        75.9 rps: p95 13 ms  errors 0  PASS
+[06:42:12]       156.2 rps: p95 16 ms  errors 0  PASS
+[06:42:24]       224.0 rps: p95 60 ms  errors 0  PASS
+[06:42:25]     -> max throughput meeting SLO: 224.0 rps, p95 there 60 ms
+[06:42:25] T6 [99/108] track ocsort batch=1 replicas=4 cores=1   (elapsed 188 min)
+[06:42:25]   kubectl patch statefulset/track: ocsort batch=1 replicas=4 cores=1
+[06:43:23]     single request 9 ms; low load 1.00 rps: p50 11 p95 14 ms errors 0
+[06:43:32]       400.0 rps: p95 2118 ms  errors 0  FAIL
+[06:43:45]        20.0 rps: p95 13 ms  errors 0  PASS
+[06:43:57]        89.4 rps: p95 13 ms  errors 0  PASS
+[06:44:09]       189.1 rps: p95 26 ms  errors 0  PASS
+[06:44:20]       275.1 rps: p95 74 ms  errors 0  PASS
+[06:44:21]     -> max throughput meeting SLO: 275.1 rps, p95 there 74 ms
+[06:44:21] T6 [100/108] track ocsort batch=1 replicas=1 cores=2   (elapsed 190 min)
+[06:44:21]   kubectl patch statefulset/track: ocsort batch=1 replicas=1 cores=2
+[06:47:02]     single request 8 ms; low load 1.00 rps: p50 10 p95 12 ms errors 0
+[06:47:14]       176.5 rps: p95 575 ms  errors 0  FAIL
+[06:47:26]        13.3 rps: p95 13 ms  errors 0  PASS
+[06:47:38]        48.4 rps: p95 12 ms  errors 0  PASS
+[06:47:51]        92.5 rps: p95 12 ms  errors 0  PASS
+[06:48:03]       127.8 rps: p95 11 ms  errors 0  PASS
+[06:48:03]     -> max throughput meeting SLO: 127.8 rps, p95 there 11 ms
+[06:48:03] T6 [101/108] track ocsort batch=4 replicas=1 cores=1   (elapsed 194 min)
+[06:48:03]   kubectl patch statefulset/track: ocsort batch=4 replicas=1 cores=1
+[06:49:10]     single request 28 ms; low load 1.00 rps: p50 30 p95 32 ms errors 0
+[06:49:25]       170.1 rps: p95 3011 ms  errors 0  FAIL
+[06:49:38]        13.0 rps: p95 33 ms  errors 0  PASS
+[06:49:50]        47.1 rps: p95 48 ms  errors 0  PASS
+[06:50:02]        89.5 rps: p95 65 ms  errors 0  PASS
+[06:50:14]       123.4 rps: p95 404 ms  errors 0  FAIL
+[06:50:14]     -> max throughput meeting SLO: 89.5 rps, p95 there 65 ms
+[06:50:14] T6 [102/108] track ocsort batch=4 replicas=2 cores=1   (elapsed 196 min)
+[06:50:14]   kubectl patch statefulset/track: ocsort batch=4 replicas=2 cores=1
+[06:50:51]     single request 28 ms; low load 1.00 rps: p50 31 p95 32 ms errors 0
+[06:51:06]       340.9 rps: p95 5377 ms  errors 0  FAIL
+[06:51:18]        18.5 rps: p95 33 ms  errors 0  PASS
+[06:51:30]        79.3 rps: p95 65 ms  errors 0  PASS
+[06:51:42]       164.4 rps: p95 264 ms  errors 0  PASS
+[06:51:55]       236.8 rps: p95 517 ms  errors 0  FAIL
+[06:51:55]     -> max throughput meeting SLO: 164.4 rps, p95 there 264 ms
+[06:51:55] T6 [103/108] track ocsort batch=4 replicas=4 cores=1   (elapsed 198 min)
+[06:51:55]   kubectl patch statefulset/track: ocsort batch=4 replicas=4 cores=1
+[06:52:54]     single request 31 ms; low load 1.00 rps: p50 30 p95 33 ms errors 0
+[06:53:03]       400.0 rps: p95 935 ms  errors 0  FAIL
+[06:53:15]        20.0 rps: p95 32 ms  errors 0  PASS
+[06:53:27]        89.4 rps: p95 59 ms  errors 0  PASS
+[06:53:39]       189.1 rps: p95 417 ms  errors 0  FAIL
+[06:53:51]       130.1 rps: p95 59 ms  errors 0  PASS
+[06:53:53]     -> max throughput meeting SLO: 130.1 rps, p95 there 59 ms
+[06:53:53] T6 [104/108] track ocsort batch=4 replicas=1 cores=2   (elapsed 200 min)
+[06:53:53]   kubectl patch statefulset/track: ocsort batch=4 replicas=1 cores=2
+[06:56:33]     single request 28 ms; low load 1.00 rps: p50 30 p95 33 ms errors 0
+[06:56:46]       178.5 rps: p95 481 ms  errors 0  FAIL
+[06:56:58]        13.4 rps: p95 34 ms  errors 0  PASS
+[06:57:10]        48.8 rps: p95 47 ms  errors 0  PASS
+[06:57:22]        93.4 rps: p95 63 ms  errors 0  PASS
+[06:57:34]       129.1 rps: p95 53 ms  errors 0  PASS
+[06:57:34]     -> max throughput meeting SLO: 129.1 rps, p95 there 53 ms
+[06:57:34] T6 [105/108] track ocsort batch=8 replicas=1 cores=1   (elapsed 203 min)
+[06:57:34]   kubectl patch statefulset/track: ocsort batch=8 replicas=1 cores=1
+[06:58:41]     single request 27 ms; low load 1.00 rps: p50 31 p95 32 ms errors 0
+[06:58:56]       160.6 rps: p95 1983 ms  errors 0  FAIL
+[06:59:08]        12.7 rps: p95 34 ms  errors 0  PASS
+[06:59:20]        45.1 rps: p95 47 ms  errors 0  PASS
+[06:59:32]        85.1 rps: p95 73 ms  errors 0  PASS
+[06:59:44]       116.9 rps: p95 82 ms  errors 0  PASS
+[06:59:44]     -> max throughput meeting SLO: 116.9 rps, p95 there 82 ms
+[06:59:44] T6 [106/108] track ocsort batch=8 replicas=2 cores=1   (elapsed 205 min)
+[06:59:44]   kubectl patch statefulset/track: ocsort batch=8 replicas=2 cores=1
+[07:00:21]     single request 28 ms; low load 1.00 rps: p50 31 p95 33 ms errors 0
+[07:00:33]       332.5 rps: p95 2346 ms  errors 0  FAIL
+[07:00:45]        18.2 rps: p95 33 ms  errors 0  PASS
+[07:00:57]        77.9 rps: p95 63 ms  errors 0  PASS
+[07:01:09]       160.9 rps: p95 504 ms  errors 0  FAIL
+[07:01:22]       111.9 rps: p95 82 ms  errors 0  PASS
+[07:01:22]     -> max throughput meeting SLO: 111.9 rps, p95 there 82 ms
+[07:01:22] T6 [107/108] track ocsort batch=8 replicas=4 cores=1   (elapsed 207 min)
+[07:01:22]   kubectl patch statefulset/track: ocsort batch=8 replicas=4 cores=1
+[07:02:20]     single request 28 ms; low load 1.00 rps: p50 32 p95 34 ms errors 0
+[07:02:29]       400.0 rps: p95 1681 ms  errors 0  FAIL
+[07:02:41]        20.0 rps: p95 35 ms  errors 0  PASS
+[07:02:54]        89.4 rps: p95 77 ms  errors 0  PASS
+[07:03:06]       189.1 rps: p95 69 ms  errors 0  PASS
+[07:03:17]       275.1 rps: p95 1166 ms  errors 0  FAIL
+[07:03:18]     -> max throughput meeting SLO: 189.1 rps, p95 there 69 ms
+[07:03:18] T6 [108/108] track ocsort batch=8 replicas=1 cores=2   (elapsed 209 min)
+[07:03:18]   kubectl patch statefulset/track: ocsort batch=8 replicas=1 cores=2
+[07:05:58]     single request 28 ms; low load 1.00 rps: p50 30 p95 32 ms errors 0
+[07:06:11]       179.1 rps: p95 545 ms  errors 0  FAIL
+[07:06:23]        13.4 rps: p95 33 ms  errors 0  PASS
+[07:06:35]        49.0 rps: p95 46 ms  errors 0  PASS
+[07:06:47]        93.6 rps: p95 89 ms  errors 0  PASS
+[07:06:59]       129.5 rps: p95 82 ms  errors 0  PASS
+[07:06:59]     -> max throughput meeting SLO: 129.5 rps, p95 there 82 ms
+[07:06:59] T6 done -> /home/cc/CSE8001---Object-Detection/docs/profile/t6_stage_profile.csv
+
+==== 2026-11-16 07:07:00  T7 end-to-end
+[07:07:00] T7 [1/40] yolo26n-pt-imgsz640 + bytetrack at 1.0 x T0 = 8.7 rps (elapsed 0 min)
+[07:07:00]   kubectl patch deployment/detect: yolo26n-pt-imgsz640 batch=1 replicas=2 cores=1
+[07:07:54]   kubectl patch statefulset/track: bytetrack batch=1 replicas=1 cores=1
+[07:09:18]     cost 3  p95 176 ms  SLO 324 ms  MEETS SLA  HOTA 36.56266085298927
+[07:09:18] T7 [2/40] yolo26n-pt-imgsz640 + bytetrack-low at 1.0 x T0 = 8.7 rps (elapsed 2 min)
+[07:09:18]   kubectl patch statefulset/track: bytetrack-low batch=4 replicas=1 cores=1
+[07:10:42]     cost 3  p95 182 ms  SLO 324 ms  MEETS SLA  HOTA 35.58169810491905
+[07:10:42] T7 [3/40] yolo26n-pt-imgsz640 + bytetrack-long at 1.0 x T0 = 8.7 rps (elapsed 4 min)
+[07:10:42]   kubectl patch statefulset/track: bytetrack-long batch=8 replicas=1 cores=1
+[07:12:06]     cost 3  p95 185 ms  SLO 324 ms  MEETS SLA  HOTA 36.487573359931844
+[07:12:06] T7 [4/40] yolo26n-pt-imgsz640 + ocsort at 1.0 x T0 = 8.7 rps (elapsed 5 min)
+[07:12:06]   kubectl patch statefulset/track: ocsort batch=1 replicas=1 cores=1
+[07:13:30]     cost 3  p95 163 ms  SLO 324 ms  MEETS SLA  HOTA 34.74189792533635
+[07:13:30] T7 [5/40] yolo26n-pt-imgsz1280 + bytetrack at 1.0 x T0 = 8.7 rps (elapsed 7 min)
+[07:13:30]   kubectl patch deployment/detect: yolo26n-pt-imgsz1280 batch=1 replicas=3 cores=2
+[07:14:23]   kubectl patch statefulset/track: bytetrack batch=1 replicas=1 cores=1
+[07:15:47]     cost 7  p95 281 ms  SLO 324 ms  MEETS SLA  HOTA 46.658473077604185
+[07:15:47] T7 [6/40] yolo26n-pt-imgsz1280 + bytetrack-low at 1.0 x T0 = 8.7 rps (elapsed 9 min)
+[07:15:48]   kubectl patch statefulset/track: bytetrack-low batch=4 replicas=1 cores=1
+[07:17:13]     cost 7  p95 315 ms  SLO 324 ms  MEETS SLA  HOTA 45.197584612506056
+[07:17:13] T7 [7/40] yolo26n-pt-imgsz1280 + bytetrack-long at 1.0 x T0 = 8.7 rps (elapsed 10 min)
+[07:17:13]   kubectl patch statefulset/track: bytetrack-long batch=8 replicas=1 cores=1
+[07:18:38]     cost 7  p95 311 ms  SLO 324 ms  MEETS SLA  HOTA 46.73515889902738
+[07:18:38] T7 [8/40] yolo26n-pt-imgsz1280 + ocsort at 1.0 x T0 = 8.7 rps (elapsed 12 min)
+[07:18:38]   kubectl patch statefulset/track: ocsort batch=1 replicas=1 cores=1
+[07:20:03]     cost 7  p95 294 ms  SLO 324 ms  MEETS SLA  HOTA 47.018048232177954
+[07:20:03] T7 [9/40] yolo26n-onnx-imgsz640 + bytetrack at 1.0 x T0 = 8.7 rps (elapsed 13 min)
+[07:20:03]   kubectl patch deployment/detect: yolo26n-onnx-imgsz640 batch=1 replicas=2 cores=1
+[07:20:56]   kubectl patch statefulset/track: bytetrack batch=1 replicas=1 cores=1
+[07:22:20]     cost 3  p95 183 ms  SLO 324 ms  MEETS SLA  HOTA 34.94147086319763
+[07:22:20] T7 [10/40] yolo26n-onnx-imgsz640 + bytetrack-low at 1.0 x T0 = 8.7 rps (elapsed 15 min)
+[07:22:20]   kubectl patch statefulset/track: bytetrack-low batch=4 replicas=1 cores=1
+[07:23:44]     cost 3  p95 204 ms  SLO 324 ms  MEETS SLA  HOTA 34.07011396761978
+[07:23:44] T7 [11/40] yolo26n-onnx-imgsz640 + bytetrack-long at 1.0 x T0 = 8.7 rps (elapsed 17 min)
+[07:23:44]   kubectl patch statefulset/track: bytetrack-long batch=8 replicas=1 cores=1
+[07:25:08]     cost 3  p95 198 ms  SLO 324 ms  MEETS SLA  HOTA 34.21163751854292
+[07:25:08] T7 [12/40] yolo26n-onnx-imgsz640 + ocsort at 1.0 x T0 = 8.7 rps (elapsed 18 min)
+[07:25:08]   kubectl patch statefulset/track: ocsort batch=1 replicas=1 cores=1
+[07:26:32]     cost 3  p95 186 ms  SLO 324 ms  MEETS SLA  HOTA 33.93099106508083
+[07:26:32] T7 [13/40] yolo26n-onnx-int8-imgsz640 + bytetrack at 1.0 x T0 = 8.7 rps (elapsed 20 min)
+[07:26:32]   kubectl patch deployment/detect: yolo26n-onnx-int8-imgsz640 batch=1 replicas=3 cores=1
+[07:27:25]   kubectl patch statefulset/track: bytetrack batch=1 replicas=1 cores=1
+[07:28:49]     cost 4  p95 229 ms  SLO 324 ms  MEETS SLA  HOTA 33.420409616012996
+[07:28:49] T7 [14/40] yolo26n-onnx-int8-imgsz640 + bytetrack-low at 1.0 x T0 = 8.7 rps (elapsed 22 min)
+[07:28:49]   kubectl patch statefulset/track: bytetrack-low batch=4 replicas=1 cores=1
+[07:30:14]     cost 4  p95 247 ms  SLO 324 ms  MEETS SLA  HOTA 32.16223731705262
+[07:30:14] T7 [15/40] yolo26n-onnx-int8-imgsz640 + bytetrack-long at 1.0 x T0 = 8.7 rps (elapsed 23 min)
+[07:30:15]   kubectl patch statefulset/track: bytetrack-long batch=8 replicas=1 cores=1
+[07:31:40]     cost 4  p95 250 ms  SLO 324 ms  MEETS SLA  HOTA 33.707950009787204
+[07:31:40] T7 [16/40] yolo26n-onnx-int8-imgsz640 + ocsort at 1.0 x T0 = 8.7 rps (elapsed 25 min)
+[07:31:40]   kubectl patch statefulset/track: ocsort batch=1 replicas=1 cores=1
+[07:33:05]     cost 4  p95 231 ms  SLO 324 ms  MEETS SLA  HOTA 31.984361334075945
+[07:33:05] T7 [17/40] fasterrcnn-mv3-320 + bytetrack at 1.0 x T0 = 8.7 rps (elapsed 26 min)
+[07:33:05]   kubectl patch deployment/detect: fasterrcnn-mv3-320 batch=1 replicas=2 cores=2
+[07:33:57]   kubectl patch statefulset/track: bytetrack batch=1 replicas=1 cores=1
+[07:35:21]     cost 5  p95 199 ms  SLO 324 ms  MEETS SLA  HOTA 20.5232895331385
+[07:35:21] T7 [18/40] fasterrcnn-mv3-320 + bytetrack-low at 1.0 x T0 = 8.7 rps (elapsed 28 min)
+[07:35:21]   kubectl patch statefulset/track: bytetrack-low batch=4 replicas=1 cores=1
+[07:36:45]     cost 5  p95 226 ms  SLO 324 ms  MEETS SLA  HOTA 19.557105076491364
+[07:36:45] T7 [19/40] fasterrcnn-mv3-320 + bytetrack-long at 1.0 x T0 = 8.7 rps (elapsed 30 min)
+[07:36:45]   kubectl patch statefulset/track: bytetrack-long batch=8 replicas=1 cores=1
+[07:38:08]     cost 5  p95 223 ms  SLO 324 ms  MEETS SLA  HOTA 20.4912700016696
+[07:38:08] T7 [20/40] fasterrcnn-mv3-320 + ocsort at 1.0 x T0 = 8.7 rps (elapsed 31 min)
+[07:38:08]   kubectl patch statefulset/track: ocsort batch=1 replicas=1 cores=1
+[07:39:32]     cost 5  p95 221 ms  SLO 324 ms  MEETS SLA  HOTA 20.621251882117587
+[07:39:32] T7 [21/40] yolo26n-pt-imgsz640 + bytetrack at 4.0 x T0 = 34.9 rps (elapsed 33 min)
+[07:39:32]   kubectl patch deployment/detect: yolo26n-pt-imgsz640 batch=1 replicas=5 cores=1
+[07:40:26]   kubectl patch statefulset/track: bytetrack batch=1 replicas=1 cores=1
+[07:41:52]     cost 6  p95 156 ms  SLO 324 ms  MEETS SLA  HOTA 36.56266085298927
+[07:41:52] T7 [22/40] yolo26n-pt-imgsz640 + bytetrack-low at 4.0 x T0 = 34.9 rps (elapsed 35 min)
+[07:41:52]   kubectl patch statefulset/track: bytetrack-low batch=4 replicas=1 cores=1
+[07:43:18]     cost 6  p95 186 ms  SLO 324 ms  MEETS SLA  HOTA 35.58169810491905
+[07:43:18] T7 [23/40] yolo26n-pt-imgsz640 + bytetrack-long at 4.0 x T0 = 34.9 rps (elapsed 36 min)
+[07:43:18]   kubectl patch statefulset/track: bytetrack-long batch=8 replicas=1 cores=1
+[07:44:43]     cost 6  p95 180 ms  SLO 324 ms  MEETS SLA  HOTA 36.487573359931844
+[07:44:43] T7 [24/40] yolo26n-pt-imgsz640 + ocsort at 4.0 x T0 = 34.9 rps (elapsed 38 min)
+[07:44:44]   kubectl patch statefulset/track: ocsort batch=1 replicas=1 cores=1
+[07:46:09]     cost 6  p95 166 ms  SLO 324 ms  MEETS SLA  HOTA 34.74189792533635
+[07:46:09] T7 [25/40] yolo26n-pt-imgsz1280 + bytetrack at 4.0 x T0 = 34.9 rps (elapsed 39 min)
+[07:46:09]   kubectl patch deployment/detect: yolo26n-pt-imgsz1280 batch=1 replicas=6 cores=2
+[07:47:01]   kubectl patch statefulset/track: bytetrack batch=1 replicas=1 cores=1
+[07:48:42]     cost 13  p95 12753 ms  SLO 324 ms  misses SLA  HOTA 46.658473077604185
+[07:48:42] T7 [26/40] yolo26n-pt-imgsz1280 + bytetrack-low at 4.0 x T0 = 34.9 rps (elapsed 42 min)
+[07:48:42]   kubectl patch statefulset/track: bytetrack-low batch=4 replicas=1 cores=1
+[07:50:24]     cost 13  p95 12929 ms  SLO 324 ms  misses SLA  HOTA 45.197584612506056
+[07:50:24] T7 [27/40] yolo26n-pt-imgsz1280 + bytetrack-long at 4.0 x T0 = 34.9 rps (elapsed 43 min)
+[07:50:24]   kubectl patch statefulset/track: bytetrack-long batch=8 replicas=1 cores=1
+[07:52:05]     cost 13  p95 12605 ms  SLO 324 ms  misses SLA  HOTA 46.73515889902738
+[07:52:05] T7 [28/40] yolo26n-pt-imgsz1280 + ocsort at 4.0 x T0 = 34.9 rps (elapsed 45 min)
+[07:52:05]   kubectl patch statefulset/track: ocsort batch=1 replicas=1 cores=1
+[07:53:46]     cost 13  p95 12884 ms  SLO 324 ms  misses SLA  HOTA 47.018048232177954
+[07:53:46] T7 [29/40] yolo26n-onnx-imgsz640 + bytetrack at 4.0 x T0 = 34.9 rps (elapsed 47 min)
+[07:53:46]   kubectl patch deployment/detect: yolo26n-onnx-imgsz640 batch=1 replicas=7 cores=1
+[07:54:39]   kubectl patch statefulset/track: bytetrack batch=1 replicas=1 cores=1
+[07:56:06]     cost 8  p95 191 ms  SLO 324 ms  MEETS SLA  HOTA 34.94147086319763
+[07:56:06] T7 [30/40] yolo26n-onnx-imgsz640 + bytetrack-low at 4.0 x T0 = 34.9 rps (elapsed 49 min)
+[07:56:06]   kubectl patch statefulset/track: bytetrack-low batch=4 replicas=1 cores=1
+[07:57:33]     cost 8  p95 212 ms  SLO 324 ms  MEETS SLA  HOTA 34.07011396761978
+[07:57:33] T7 [31/40] yolo26n-onnx-imgsz640 + bytetrack-long at 4.0 x T0 = 34.9 rps (elapsed 51 min)
+[07:57:33]   kubectl patch statefulset/track: bytetrack-long batch=8 replicas=1 cores=1
+[07:59:01]     cost 8  p95 210 ms  SLO 324 ms  MEETS SLA  HOTA 34.21163751854292
+[07:59:01] T7 [32/40] yolo26n-onnx-imgsz640 + ocsort at 4.0 x T0 = 34.9 rps (elapsed 52 min)
+[07:59:01]   kubectl patch statefulset/track: ocsort batch=1 replicas=1 cores=1
+[08:00:28]     cost 8  p95 203 ms  SLO 324 ms  MEETS SLA  HOTA 33.93099106508083
+[08:00:28] T7 [33/40] yolo26n-onnx-int8-imgsz640 + bytetrack at 4.0 x T0 = 34.9 rps (elapsed 53 min)
+[08:00:28]   kubectl patch deployment/detect: yolo26n-onnx-int8-imgsz640 batch=1 replicas=9 cores=1
+[08:01:21]   kubectl patch statefulset/track: bytetrack batch=1 replicas=1 cores=1
+[08:02:51]     cost 10  p95 246 ms  SLO 324 ms  MEETS SLA  HOTA 33.420409616012996
+[08:02:51] T7 [34/40] yolo26n-onnx-int8-imgsz640 + bytetrack-low at 4.0 x T0 = 34.9 rps (elapsed 56 min)
+[08:02:51]   kubectl patch statefulset/track: bytetrack-low batch=4 replicas=1 cores=1
+[08:04:20]     cost 10  p95 271 ms  SLO 324 ms  MEETS SLA  HOTA 32.16223731705262
+[08:04:20] T7 [35/40] yolo26n-onnx-int8-imgsz640 + bytetrack-long at 4.0 x T0 = 34.9 rps (elapsed 57 min)
+[08:04:21]   kubectl patch statefulset/track: bytetrack-long batch=8 replicas=1 cores=1
+[08:05:50]     cost 10  p95 270 ms  SLO 324 ms  MEETS SLA  HOTA 33.707950009787204
+[08:05:50] T7 [36/40] yolo26n-onnx-int8-imgsz640 + ocsort at 4.0 x T0 = 34.9 rps (elapsed 59 min)
+[08:05:50]   kubectl patch statefulset/track: ocsort batch=1 replicas=1 cores=1
+[08:07:19]     cost 10  p95 246 ms  SLO 324 ms  MEETS SLA  HOTA 31.984361334075945
+[08:07:19] T7 [37/40] fasterrcnn-mv3-320 + bytetrack at 4.0 x T0 = 34.9 rps (elapsed 60 min)
+[08:07:19]   kubectl patch deployment/detect: fasterrcnn-mv3-320 batch=1 replicas=6 cores=2
+[08:08:12]   kubectl patch statefulset/track: bytetrack batch=1 replicas=1 cores=1
+[08:09:42]     cost 13  p95 3862 ms  SLO 324 ms  misses SLA  HOTA 20.5232895331385
+[08:09:42] T7 [38/40] fasterrcnn-mv3-320 + bytetrack-low at 4.0 x T0 = 34.9 rps (elapsed 63 min)
+[08:09:42]   kubectl patch statefulset/track: bytetrack-low batch=4 replicas=1 cores=1
+[08:11:13]     cost 13  p95 3259 ms  SLO 324 ms  misses SLA  HOTA 19.557105076491364
+[08:11:13] T7 [39/40] fasterrcnn-mv3-320 + bytetrack-long at 4.0 x T0 = 34.9 rps (elapsed 64 min)
+[08:11:13]   kubectl patch statefulset/track: bytetrack-long batch=8 replicas=1 cores=1
+[08:12:43]     cost 13  p95 3074 ms  SLO 324 ms  misses SLA  HOTA 20.4912700016696
+[08:12:43] T7 [40/40] fasterrcnn-mv3-320 + ocsort at 4.0 x T0 = 34.9 rps (elapsed 66 min)
+[08:12:43]   kubectl patch statefulset/track: ocsort batch=1 replicas=1 cores=1
+[08:14:14]     cost 13  p95 3502 ms  SLO 324 ms  misses SLA  HOTA 20.621251882117587
+[08:14:14] wrote /home/cc/CSE8001---Object-Detection/docs/profile/t7_summary.json
+[08:14:14] T7 done -> /home/cc/CSE8001---Object-Detection/docs/profile/t7_e2e.csv (target load) and /home/cc/CSE8001---Object-Detection/docs/profile/t7_e2e_all_loads.csv (all loads)
+
+==== 2026-11-16 08:14:14  plots
+wrote docs/plots/t6_accuracy_vs_p95.png
+wrote docs/plots/t6_accuracy_vs_throughput.png
+wrote docs/plots/t7_cost_accuracy_pareto.png
+
+==== 2026-11-16 08:14:17  restore manifest defaults
+deployment.apps "detect" deleted from mot17 namespace
+statefulset.apps "track" deleted from mot17 namespace
+namespace/mot17 unchanged
+service/detect unchanged
+deployment.apps/detect created
+service/track unchanged
+statefulset.apps/track created
+service/evaluate unchanged
+deployment.apps/evaluate unchanged
+service/gateway unchanged
+deployment.apps/gateway unchanged
+Waiting for deployment "detect" rollout to finish: 0 of 1 updated replicas are available...
+deployment "detect" successfully rolled out
+Waiting for 1 pods to be ready...
+Waiting for 1 pods to be ready...
+partitioned roll out complete: 1 new pods have been updated...
+
+==== 2026-11-16 08:15:20  done
+  SLA     docs/sla.json
+  T6      docs/profile/t6_stage_profile.csv
+  T7      docs/profile/t7_e2e.csv  (+ t7_e2e_all_loads.csv, t7_summary.json)
+  plots   docs/plots/
+  offline mot_pipeline (Object_Detection + Tracking)/results/guide_eval_vm/
+  log     docs/profile/run_k8s_20261116_031817.log

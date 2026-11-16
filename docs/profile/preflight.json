@@ -1,0 +1,116 @@
+{
+  "measured_on": "k3s node node-mlops-ppzfq-missouri-edu (16 vCPU), CPU only",
+  "checks": [
+    {
+      "stage": "detect",
+      "variant": "yolo26n-pt-imgsz640",
+      "cores": 1,
+      "single_request_ms": 118.4413199989649,
+      "probe_rps": 4.221499726652571,
+      "p95_ms": 150.1893524422485,
+      "errors": 0,
+      "cpu_throttled_pct": 0.17100645647669147,
+      "problem": null
+    },
+    {
+      "stage": "detect",
+      "variant": "yolo26n-pt-imgsz1280",
+      "cores": 1,
+      "single_request_ms": 366.68194600133575,
+      "probe_rps": 1.3635795420322618,
+      "p95_ms": 408.7983011755569,
+      "errors": 0,
+      "cpu_throttled_pct": 0.05249990277795782,
+      "problem": null
+    },
+    {
+      "stage": "detect",
+      "variant": "yolo26n-onnx-imgsz640",
+      "cores": 1,
+      "single_request_ms": 138.8850579969585,
+      "probe_rps": 3.600099299457755,
+      "p95_ms": 181.76183106697863,
+      "errors": 0,
+      "cpu_throttled_pct": 0.14734266572433488,
+      "problem": null
+    },
+    {
+      "stage": "detect",
+      "variant": "yolo26n-onnx-int8-imgsz640",
+      "cores": 1,
+      "single_request_ms": 179.69771699790726,
+      "probe_rps": 2.782450486033848,
+      "p95_ms": 195.70398775431386,
+      "errors": 0,
+      "cpu_throttled_pct": 0.07657445416549438,
+      "problem": null
+    },
+    {
+      "stage": "detect",
+      "variant": "fasterrcnn-mv3-320",
+      "cores": 1,
+      "single_request_ms": 287.31181799957994,
+      "probe_rps": 1.7402695213906272,
+      "p95_ms": 317.834934001803,
+      "errors": 0,
+      "cpu_throttled_pct": 0.2657374642883998,
+      "problem": null
+    },
+    {
+      "stage": "detect",
+      "variant": "yolo26n-pt-imgsz640",
+      "cores": 2,
+      "single_request_ms": 84.72095900287968,
+      "probe_rps": 5.90172733978383,
+      "p95_ms": 119.47310278264922,
+      "errors": 0,
+      "cpu_throttled_pct": 0.0,
+      "problem": null
+    },
+    {
+      "stage": "track",
+      "variant": "bytetrack",
+      "cores": 1,
+      "single_request_ms": 6.845899999461835,
+      "probe_rps": 73.03641596273764,
+      "p95_ms": 9.625328618858475,
+      "errors": 0,
+      "cpu_throttled_pct": 0.0,
+      "problem": null
+    },
+    {
+      "stage": "track",
+      "variant": "bytetrack-low",
+      "cores": 1,
+      "single_request_ms": 7.516137000493472,
+      "probe_rps": 66.52353462519011,
+      "p95_ms": 10.153436952168704,
+      "errors": 0,
+      "cpu_throttled_pct": 0.0,
+      "problem": null
+    },
+    {
+      "stage": "track",
+      "variant": "bytetrack-long",
+      "cores": 1,
+      "single_request_ms": 6.442406000132905,
+      "probe_rps": 77.61075597993748,
+      "p95_ms": 8.218473751912825,
+      "errors": 0,
+      "cpu_throttled_pct": 0.0,
+      "problem": null
+    },
+    {
+      "stage": "track",
+      "variant": "ocsort",
+      "cores": 1,
+      "single_request_ms": 7.244887001434108,
+      "probe_rps": 69.01418888949216,
+      "p95_ms": 11.307801693328654,
+      "errors": 0,
+      "cpu_throttled_pct": 0.0,
+      "problem": null
+    }
+  ],
+  "failures": []
+}

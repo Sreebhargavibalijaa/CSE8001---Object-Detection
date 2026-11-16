@@ -1,0 +1,82 @@
+{
+  "1.0x_T0": {
+    "configs_run": 20,
+    "configs_meeting_sla": 20,
+    "cheapest_meeting_sla": {
+      "detect": "yolo26n-pt-imgsz640",
+      "track": "bytetrack",
+      "cost": 3,
+      "hota": 36.56266085298927,
+      "p95_ms": 176.02177266198845
+    },
+    "most_accurate_meeting_sla": {
+      "detect": "yolo26n-pt-imgsz1280",
+      "track": "ocsort",
+      "cost": 7,
+      "hota": 47.018048232177954,
+      "p95_ms": 293.65100203176553
+    },
+    "best_tracker_per_detector": {
+      "yolo26n-pt-imgsz640": {
+        "track": "bytetrack",
+        "hota": 36.56266085298927
+      },
+      "yolo26n-pt-imgsz1280": {
+        "track": "ocsort",
+        "hota": 47.018048232177954
+      },
+      "yolo26n-onnx-imgsz640": {
+        "track": "bytetrack",
+        "hota": 34.94147086319763
+      },
+      "yolo26n-onnx-int8-imgsz640": {
+        "track": "bytetrack-long",
+        "hota": 33.707950009787204
+      },
+      "fasterrcnn-mv3-320": {
+        "track": "ocsort",
+        "hota": 20.621251882117587
+      }
+    }
+  },
+  "4.0x_T0": {
+    "configs_run": 20,
+    "configs_meeting_sla": 12,
+    "cheapest_meeting_sla": {
+      "detect": "yolo26n-pt-imgsz640",
+      "track": "bytetrack",
+      "cost": 6,
+      "hota": 36.56266085298927,
+      "p95_ms": 156.26739154649837
+    },
+    "most_accurate_meeting_sla": {
+      "detect": "yolo26n-pt-imgsz640",
+      "track": "bytetrack",
+      "cost": 6,
+      "hota": 36.56266085298927,
+      "p95_ms": 156.26739154649837
+    },
+    "best_tracker_per_detector": {
+      "yolo26n-pt-imgsz640": {
+        "track": "bytetrack",
+        "hota": 36.56266085298927
+      },
+      "yolo26n-pt-imgsz1280": {
+        "track": "ocsort",
+        "hota": 47.018048232177954
+      },
+      "yolo26n-onnx-imgsz640": {
+        "track": "bytetrack",
+        "hota": 34.94147086319763
+      },
+      "yolo26n-onnx-int8-imgsz640": {
+        "track": "bytetrack-long",
+        "hota": 33.707950009787204
+      },
+      "fasterrcnn-mv3-320": {
+        "track": "ocsort",
+        "hota": 20.621251882117587
+      }
+    }
+  }
+}

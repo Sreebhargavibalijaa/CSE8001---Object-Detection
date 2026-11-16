@@ -1,13 +1,28 @@
 {
-  "t6_rows": 96,
-  "t7_rows": 38,
-  "pareto": [
-    {
-      "cost": 2.0,
-      "hota": 47.018048232177954,
-      "detect": "yolo26n_imgsz1280",
-      "track": "ocsort",
-      "meets_sla": "False"
-    }
-  ]
+  "t6_rows": 108,
+  "t7_rows": 40,
+  "pareto_fronts": {
+    "1.0": [
+      {
+        "cost": 3.0,
+        "hota": 36.56266085298927,
+        "detect": "yolo26n-pt-imgsz640",
+        "track": "bytetrack"
+      },
+      {
+        "cost": 7.0,
+        "hota": 47.018048232177954,
+        "detect": "yolo26n-pt-imgsz1280",
+        "track": "ocsort"
+      }
+    ],
+    "4.0": [
+      {
+        "cost": 6.0,
+        "hota": 36.56266085298927,
+        "detect": "yolo26n-pt-imgsz640",
+        "track": "bytetrack"
+      }
+    ]
+  }
 }
