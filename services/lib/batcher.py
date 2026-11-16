@@ -19,16 +19,25 @@ class RequestBatcher:
         self._worker.start()
 
     def submit(self, item):
+        return self.submit_timed(item)[0]
+
+    def submit_timed(self, item):
+        """Like submit(), but also return (queue_s, infer_s) for this request.
+
+        queue_s: time from enqueue until its batch started running.
+        infer_s: wall time of the batch handler that processed it.
+        """
         future = Future()
         self._queue.put((item, future, time.perf_counter()))
         if self.metrics:
             self.metrics.set_queue(self._queue.qsize())
-        return future.result()
+        result = future.result()
+        queue_s, infer_s = getattr(future, "timing", (0.0, 0.0))
+        return result, queue_s, infer_s
 
     def _run(self):
         while True:
-            item, future, _ = self._queue.get()
-            batch = [(item, future)]
+            batch = [self._queue.get()]
             deadline = time.perf_counter() + self.timeout
             while len(batch) < self.max_batch:
                 remaining = deadline - time.perf_counter()
@@ -43,12 +52,17 @@ class RequestBatcher:
                 self.metrics.set_batch(len(batch))
             items = [entry[0] for entry in batch]
             futures = [entry[1] for entry in batch]
+            started = time.perf_counter()
             try:
                 results = self.handler(items)
                 if results is None or len(results) != len(futures):
                     raise RuntimeError("batch handler must return one result per item")
-                for future, result in zip(futures, results):
+                elapsed = time.perf_counter() - started
+                for (_, future, enqueued), result in zip(batch, results):
+                    future.timing = (max(0.0, started - enqueued), elapsed)
                     future.set_result(result)
             except Exception as error:
-                for future in futures:
+                elapsed = time.perf_counter() - started
+                for _, future, enqueued in batch:
+                    future.timing = (max(0.0, started - enqueued), elapsed)
                     future.set_exception(error)

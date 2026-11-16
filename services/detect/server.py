@@ -17,8 +17,73 @@ sys.path[:0] = [str(ROOT), str(ROOT / "mot_pipeline (Object_Detection + Tracking
 from services import mot_pb2, mot_pb2_grpc  # noqa: E402
 from services.lib.batcher import RequestBatcher  # noqa: E402
 from services.lib.metrics import StageMetrics  # noqa: E402
-from services.lib.server import serve  # noqa: E402
+from services.lib.server import serve, timing_metadata  # noqa: E402
 from services.lib.variant import load_variant  # noqa: E402
+
+
+CPU_THREADS = 0  # set by limit_cpu_threads(); 0 = leave library defaults
+
+
+def apply_torch_threads():
+    """Re-apply the thread cap in the calling thread.
+
+    Ultralytics calls torch.set_num_threads(8) while setting up the first
+    predict, and the OpenMP thread count is per calling thread, so the cap has
+    to be set again in the batcher thread before every model call. Measured on
+    the VM: 8 threads in a 1-core pod were throttled in 74% of CPU periods
+    (about 850 ms per frame instead of about 100 ms).
+    """
+    if CPU_THREADS > 0:
+        import torch
+        if torch.get_num_threads() != CPU_THREADS:
+            torch.set_num_threads(CPU_THREADS)
+
+
+def cgroup_cpu_limit():
+    """CPU limit of this container in whole cores (0 if unlimited or unknown)."""
+    try:
+        quota, period = Path("/sys/fs/cgroup/cpu.max").read_text().split()[:2]
+        if quota == "max":
+            return 0
+        return max(1, int(float(quota) / float(period) + 0.999))
+    except (OSError, ValueError):
+        return 0
+
+
+def limit_cpu_threads():
+    """Match torch / OpenCV / ONNX Runtime threads to the pod CPU limit.
+
+    Without this each library starts one thread per *host* core (16 on the VM),
+    which thrashes under a 1- or 2-core Kubernetes CPU limit.
+    """
+    global CPU_THREADS
+    n = int(os.environ.get("OMP_NUM_THREADS", "0") or 0)
+    if n <= 0:
+        n = cgroup_cpu_limit()
+    if n <= 0:
+        return None
+    CPU_THREADS = n
+    import torch
+    torch.set_num_threads(n)
+    cv2.setNumThreads(n)
+    try:
+        import onnxruntime as ort
+        base = ort.InferenceSession
+
+        class LimitedSession(base):
+            def __init__(self, path_or_bytes, sess_options=None, providers=None,
+                         provider_options=None, **kwargs):
+                options = sess_options or ort.SessionOptions()
+                options.intra_op_num_threads = n
+                options.inter_op_num_threads = 1
+                super().__init__(path_or_bytes, sess_options=options, providers=providers,
+                                 provider_options=provider_options, **kwargs)
+
+        ort.InferenceSession = LimitedSession
+    except ImportError:
+        pass
+    print(f"cpu threads limited to {n}", flush=True)
+    return n
 
 
 def decode_frame(frame):
@@ -48,8 +113,9 @@ class DetectorService(mot_pb2_grpc.DetectorServicer):
     def Detect(self, request, context):
         started = time.perf_counter()
         try:
-            response = self.batcher.submit(request)
+            response, queue_s, infer_s = self.batcher.submit_timed(request)
             self.metrics.observe(time.perf_counter() - started, True)
+            timing_metadata(context, queue_s, infer_s)
             return response
         except Exception as error:
             self.metrics.observe(time.perf_counter() - started, False)
@@ -84,14 +150,15 @@ class DetectorService(mot_pb2_grpc.DetectorServicer):
         return grouped
 
 
-def build_predict(weights, imgsz, conf, device):
+def build_predict(weights, imgsz, conf, device, per_image=False):
     from ultralytics import YOLO
     if "int8" in Path(weights).stem.lower():
         device = "cpu"
     model = YOLO(str(weights), task="detect")
 
-    def predict(images):
-        results = model.predict(source=images, classes=[0], device=device, imgsz=imgsz,
+    def run(source):
+        apply_torch_threads()
+        results = model.predict(source=source, classes=[0], device=device, imgsz=imgsz,
                                 conf=conf, verbose=False)
         out = []
         for result in results:
@@ -99,23 +166,70 @@ def build_predict(weights, imgsz, conf, device):
             out.append([(*map(float, xyxy), float(score))
                         for xyxy, score in zip(boxes.xyxy, boxes.conf)])
         return out
+
+    def predict(images):
+        if per_image:
+            # ONNX exports have a fixed batch of 1: run the batch image by image.
+            return [run(image)[0] for image in images]
+        return run(images)
+    return predict
+
+
+def build_fasterrcnn_predict(weights, conf):
+    """torchvision Faster R-CNN MobileNetV3-Large 320-FPN from a registry state_dict."""
+    import torch
+    from torchvision.models.detection import (
+        FasterRCNN_MobileNet_V3_Large_320_FPN_Weights,
+        fasterrcnn_mobilenet_v3_large_320_fpn,
+    )
+    from torchvision.transforms.functional import to_tensor
+    categories = FasterRCNN_MobileNet_V3_Large_320_FPN_Weights.DEFAULT.meta["categories"]
+    model = fasterrcnn_mobilenet_v3_large_320_fpn(
+        weights=None, weights_backbone=None, num_classes=len(categories), box_score_thresh=conf)
+    model.load_state_dict(torch.load(str(weights), map_location="cpu"), strict=True)
+    model.eval()
+    person = categories.index("person")
+
+    def predict(images):
+        apply_torch_threads()
+        tensors = [to_tensor(cv2.cvtColor(image, cv2.COLOR_BGR2RGB)) for image in images]
+        with torch.inference_mode():
+            outputs = model(tensors)
+        out = []
+        for output in outputs:
+            out.append([(*map(float, box), float(score))
+                        for box, score, label in zip(output["boxes"].tolist(),
+                                                     output["scores"].tolist(),
+                                                     output["labels"].tolist())
+                        if label == person and score >= conf])
+        return out
     return predict
 
 
 def main():
+    limit_cpu_threads()
     weights, meta = load_variant("detection")
     imgsz = int(os.environ.get("IMGSZ", meta.get("imgsz") or 640))
     conf = float(os.environ.get("CONF", 0.01))
     device = os.environ.get("DEVICE", "cpu")
+    runtime = meta.get("runtime", "pytorch")
+    if runtime == "torchvision":
+        predict = build_fasterrcnn_predict(weights, conf)
+    else:
+        predict = build_predict(weights, imgsz, conf, device, per_image=runtime.startswith("onnx"))
+    # One warm-up frame: loads the model and lets Ultralytics finish its setup
+    # (which resets the thread count) before the pod reports Ready.
+    predict([np.zeros((1080, 1920, 3), dtype=np.uint8)])
+    apply_torch_threads()
     metrics = StageMetrics("detect")
-    service = DetectorService(build_predict(weights, imgsz, conf, device), metrics, None)
+    service = DetectorService(predict, metrics, None)
     service.batcher = RequestBatcher(
         service.handle_batch,
         max_batch=int(os.environ.get("BATCH_SIZE", 4)),
         timeout=float(os.environ.get("BATCH_TIMEOUT", 0.05)),
         metrics=metrics,
     )
-    print(f"detect MODEL_NAME={os.environ.get('MODEL_NAME')} imgsz={imgsz} "
+    print(f"detect MODEL_NAME={os.environ.get('MODEL_NAME')} runtime={runtime} imgsz={imgsz} "
           f"batch={os.environ.get('BATCH_SIZE', 4)}", flush=True)
     serve(lambda server: mot_pb2_grpc.add_DetectorServicer_to_server(service, server))
 

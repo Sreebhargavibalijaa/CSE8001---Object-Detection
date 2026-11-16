@@ -18,7 +18,7 @@ sys.path[:0] = [str(ROOT), str(ROOT / "mot_pipeline (Object_Detection + Tracking
 from services import mot_pb2, mot_pb2_grpc  # noqa: E402
 from services.lib.batcher import RequestBatcher  # noqa: E402
 from services.lib.metrics import StageMetrics  # noqa: E402
-from services.lib.server import serve  # noqa: E402
+from services.lib.server import serve, timing_metadata  # noqa: E402
 from services.lib.variant import load_variant  # noqa: E402
 from track import FrameDetections, build_tracker  # noqa: E402
 
@@ -49,8 +49,9 @@ class TrackerService(mot_pb2_grpc.TrackerServicer):
     def Track(self, request, context):
         started = time.perf_counter()
         try:
-            response = self.batcher.submit(request)
+            response, queue_s, infer_s = self.batcher.submit_timed(request)
             self.metrics.observe(time.perf_counter() - started, True)
+            timing_metadata(context, queue_s, infer_s)
             return response
         except Exception as error:
             self.metrics.observe(time.perf_counter() - started, False)

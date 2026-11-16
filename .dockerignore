@@ -15,3 +15,9 @@ Object_Detection
 pipeline.ipynb
 Milestone1_ppt.pptx
 milestone1_report.pdf
+# dataset slice copies and exported weights: pods load models from MinIO
+eval_slices/MOT17_*
+**/registry/export
+**/registry/artifacts
+docs/profile
+docs/.mpl

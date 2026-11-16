@@ -20,3 +20,11 @@ def serve(add_servicer, metrics_port=None, grpc_port=None, workers=8):
     print(f"gRPC :{grpc_port}  metrics :{metrics_port}", flush=True)
     server.start()
     server.wait_for_termination()
+
+
+def timing_metadata(context, queue_s, infer_s):
+    """Send server-side queue and inference time back to the client."""
+    context.set_trailing_metadata((
+        ("x-queue-ms", f"{queue_s * 1000:.3f}"),
+        ("x-infer-ms", f"{infer_s * 1000:.3f}"),
+    ))

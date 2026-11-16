@@ -4,9 +4,10 @@ Scalable stages in this pipeline:
   detection — the person detector (family, input size, frame skip, ONNX / INT8)
   tracking  — ByteTrack / OC-SORT configs (thresholds, lost-track buffer)
 
-Offline accuracy is TrackEval on a held-out test slice: MOT17-02-DPM, frames 1-100.
-Detection variants are all tracked with default ByteTrack; tracking variants all
-reuse YOLO26n imgsz=640 detections so the tracker is the only change.
+A quick smoke score is computed on MOT17-02-DPM frames 1-100 while registering.
+guide_offline.py then overwrites offline_accuracy with Guide v4 test-slice numbers
+(second halves of MOT17-02/04/09-FRCNN). Detection variants are tracked with default
+ByteTrack; tracking variants reuse YOLO26n imgsz=640 detections.
 """
 
 from __future__ import annotations
@@ -55,9 +56,16 @@ DETECTION_VARIANTS = (
     },
     {
         "name": "yolo26n-onnx-int8-imgsz640",
-        "source": "YOLO26n ONNX with ONNX Runtime dynamic INT8 quantization",
+        "source": ("YOLO26n ONNX, ONNX Runtime static INT8 (QDQ, Conv layers, "
+                   "calibrated on 32 development-slice frames)"),
         "detector": "yolo26n", "imgsz": 640, "frame_skip": 1, "runtime": "onnx-int8",
         "kind": "onnx-int8",
+    },
+    {
+        "name": "fasterrcnn-mv3-320",
+        "source": "torchvision Faster R-CNN MobileNetV3-Large 320-FPN, COCO weights (other family)",
+        "detector": "fasterrcnn", "imgsz": 320, "frame_skip": 1, "runtime": "torchvision",
+        "kind": "family",
     },
 )
 
@@ -110,16 +118,138 @@ def export_yolo_onnx(pt_path, onnx_path, imgsz):
     return onnx_path
 
 
-def export_yolo_int8(onnx_path, int8_path):
-    from onnxruntime.quantization import QuantType, quantize_dynamic
+def calibration_frames(count=32, seed=8001):
+    """Development-slice frames for INT8 calibration (never the test slice)."""
+    import numpy as np
+    from slices import GUIDE_SEQUENCES, slice_dataset_root
+    root = slice_dataset_root("development")
+    paths = []
+    for name in GUIDE_SEQUENCES:
+        folder = root / "train" / name / "img1"
+        if not folder.is_dir():
+            raise FileNotFoundError(f"{folder} missing; run build_slices.py first")
+        paths.extend(sorted(folder.glob("*.jpg")))
+    rng = np.random.default_rng(seed)
+    picks = rng.choice(len(paths), size=min(count, len(paths)), replace=False)
+    return [paths[i] for i in sorted(picks)]
+
+
+def letterbox_tensor(path, size=640):
+    """Same preprocessing as Ultralytics: keep aspect, pad with 114, RGB, 0..1, NCHW."""
+    import cv2
+    import numpy as np
+    image = cv2.imread(str(path))
+    height, width = image.shape[:2]
+    scale = min(size / height, size / width)
+    new_h, new_w = int(round(height * scale)), int(round(width * scale))
+    image = cv2.resize(image, (new_w, new_h), interpolation=cv2.INTER_LINEAR)
+    canvas = np.full((size, size, 3), 114, dtype=np.uint8)
+    top, left = (size - new_h) // 2, (size - new_w) // 2
+    canvas[top:top + new_h, left:left + new_w] = image
+    tensor = canvas[:, :, ::-1].transpose(2, 0, 1)[None].astype(np.float32) / 255.0
+    return np.ascontiguousarray(tensor)
+
+
+def export_yolo_int8(onnx_path, int8_path, imgsz=640):
+    """Static INT8 for CPU: quantize Conv layers (QDQ), calibrated on dev-slice frames.
+
+    The Milestone 1 dynamic version only touched MatMul/Gemm, which YOLO barely
+    uses, so it was the same model as FP32 ONNX. On a Linux x86 CPU, ONNX Runtime
+    runs QDQ Conv as real INT8 kernels. Post-processing stays in float.
+    """
+    import onnx
+    from onnxruntime.quantization import (
+        CalibrationDataReader, QuantFormat, QuantType, quantize_static,
+    )
     int8_path.parent.mkdir(parents=True, exist_ok=True)
-    # Quantize MatMul/Gemm only. Full ConvInteger graphs are not implemented
-    # on CoreML and some CPU ORT builds used with Ultralytics.
-    quantize_dynamic(model_input=str(onnx_path), model_output=str(int8_path),
-                     weight_type=QuantType.QInt8,
-                     op_types_to_quantize=["MatMul", "Gemm"])
-    print(f"quantized INT8 -> {int8_path} ({int8_path.stat().st_size} bytes)", flush=True)
+    source = onnx.load(str(onnx_path))
+    input_name = source.graph.input[0].name
+    frames = calibration_frames()
+
+    class Reader(CalibrationDataReader):
+        def __init__(self):
+            self.items = iter([{input_name: letterbox_tensor(path, imgsz)} for path in frames])
+
+        def get_next(self):
+            return next(self.items, None)
+
+    prepared = int8_path.with_name(int8_path.stem + ".prep.onnx")
+    upgraded = int8_path.with_name(int8_path.stem + ".opset13.onnx")
+    model_input = onnx_path
+    # Per-channel QDQ needs DequantizeLinear(axis), i.e. opset >= 13; the
+    # Milestone 1 export used opset 12. Upgrade a copy; fall back to per-tensor.
+    per_channel = False
+    opset = max((entry.version for entry in source.opset_import if entry.domain in ("", "ai.onnx")),
+                default=0)
+    if opset >= 13:
+        per_channel = True
+    else:
+        try:
+            from onnx import version_converter
+            onnx.save(version_converter.convert_version(source, 13), str(upgraded))
+            model_input, per_channel = upgraded, True
+        except Exception as error:
+            print(f"opset 13 upgrade failed ({error}); using per-tensor INT8", flush=True)
+    try:
+        from onnxruntime.quantization.shape_inference import quant_pre_process
+        quant_pre_process(str(model_input), str(prepared))
+        model_input = prepared
+    except Exception as error:
+        print(f"quant_pre_process skipped ({error})", flush=True)
+
+    def quantize(per_channel_flag):
+        quantize_static(str(model_input), str(int8_path), Reader(),
+                        quant_format=QuantFormat.QDQ,
+                        activation_type=QuantType.QUInt8, weight_type=QuantType.QInt8,
+                        per_channel=per_channel_flag, op_types_to_quantize=["Conv"])
+
+    quantize(per_channel)
+    if not onnx_loads(int8_path, input_name, frames[0], imgsz) and per_channel:
+        print("per-channel INT8 did not load; retrying per-tensor", flush=True)
+        quantize(False)
+        per_channel = False
+    # Ultralytics reads class names / stride / imgsz from the ONNX metadata.
+    quantized = onnx.load(str(int8_path))
+    have = {entry.key for entry in quantized.metadata_props}
+    for entry in source.metadata_props:
+        if entry.key not in have:
+            new = quantized.metadata_props.add()
+            new.key, new.value = entry.key, entry.value
+    onnx.save(quantized, str(int8_path))
+    for temp in (prepared, upgraded):
+        if temp.is_file():
+            temp.unlink()
+    if not onnx_loads(int8_path, input_name, frames[0], imgsz):
+        int8_path.unlink()
+        raise RuntimeError("quantized model does not load in ONNX Runtime")
+    print(f"static INT8 ({'per-channel' if per_channel else 'per-tensor'}, {len(frames)} "
+          f"calibration frames) -> {int8_path} ({int8_path.stat().st_size} bytes)", flush=True)
     return int8_path
+
+
+def onnx_loads(path, input_name=None, sample_path=None, imgsz=640):
+    """True if ONNX Runtime can load the model (and run one frame when given)."""
+    try:
+        import onnxruntime as ort
+        session = ort.InferenceSession(str(path), providers=["CPUExecutionProvider"])
+        if sample_path is not None:
+            name = input_name or session.get_inputs()[0].name
+            session.run(None, {name: letterbox_tensor(sample_path, imgsz)})
+        return True
+    except Exception as error:
+        print(f"  ONNX Runtime check failed for {Path(path).name}: {str(error)[:300]}", flush=True)
+        return False
+
+
+def export_fasterrcnn_state(path):
+    """Save the torchvision COCO weights so pods load them from the registry, not the internet."""
+    import torch
+    from torchvision.models.detection import FasterRCNN_MobileNet_V3_Large_320_FPN_Weights
+    weights = FasterRCNN_MobileNet_V3_Large_320_FPN_Weights.DEFAULT
+    path.parent.mkdir(parents=True, exist_ok=True)
+    torch.save(weights.get_state_dict(progress=True), str(path))
+    print(f"Faster R-CNN state_dict -> {path} ({path.stat().st_size} bytes)", flush=True)
+    return path
 
 
 def prepare_artifacts(pt_path, skip_export=False):
@@ -128,20 +258,31 @@ def prepare_artifacts(pt_path, skip_export=False):
     if Path(pt_path).resolve() != copied.resolve():
         shutil.copy2(pt_path, copied)
     onnx_path = ARTIFACTS / "yolo26n.onnx"
-    int8_path = ARTIFACTS / "yolo26n.int8.onnx"
+    int8_path = ARTIFACTS / "yolo26n.int8-static.onnx"
+    frcnn_path = ARTIFACTS / "fasterrcnn_mv3_320.pth"
     if not skip_export:
         if not onnx_path.is_file():
             export_yolo_onnx(copied, onnx_path, imgsz=640)
+        if int8_path.is_file() and not onnx_loads(int8_path):
+            print(f"{int8_path.name} does not load; re-exporting", flush=True)
+            int8_path.unlink()
         if onnx_path.is_file() and not int8_path.is_file():
             try:
                 export_yolo_int8(onnx_path, int8_path)
             except Exception as error:
                 print(f"INT8 quantization failed ({error}); skipping that variant", flush=True)
+        if not frcnn_path.is_file():
+            try:
+                export_fasterrcnn_state(frcnn_path)
+            except Exception as error:
+                print(f"Faster R-CNN export failed ({error}); skipping that variant", flush=True)
     available = {"pytorch": copied}
     if onnx_path.is_file():
         available["onnx"] = onnx_path
     if int8_path.is_file():
         available["onnx-int8"] = int8_path
+    if frcnn_path.is_file():
+        available["torchvision"] = frcnn_path
     return available
 
 
@@ -233,6 +374,7 @@ def main():
                 print(f"skip {variant['name']}: eval failed ({error})", flush=True)
                 continue
         extra = {
+            "detector": variant["detector"],
             "runtime": variant["runtime"],
             "imgsz": variant["imgsz"],
             "frame_skip": variant["frame_skip"],
