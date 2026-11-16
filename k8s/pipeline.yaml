@@ -54,7 +54,7 @@ spec:
             - name: MODEL_VERSION
               value: "1.0.0"
             - name: MINIO_ENDPOINT
-              value: "host.docker.internal:19000"
+              value: "10.56.2.65:19000"
             - name: MINIO_ACCESS_KEY
               value: minioadmin
             - name: MINIO_SECRET_KEY
@@ -136,7 +136,7 @@ spec:
             - name: MODEL_VERSION
               value: "1.0.0"
             - name: MINIO_ENDPOINT
-              value: "host.docker.internal:19000"
+              value: "10.56.2.65:19000"
             - name: MINIO_ACCESS_KEY
               value: minioadmin
             - name: MINIO_SECRET_KEY
@@ -237,7 +237,7 @@ spec:
       volumes:
         - name: mot17
           hostPath:
-            path: /Users/sreebhargavibalija/Desktop/8001/CSE8001---Object-Detection/MOT17
+            path: /home/cc/CSE8001---Object-Detection/MOT17
             type: Directory
 ---
 apiVersion: v1
@@ -303,5 +303,5 @@ spec:
       volumes:
         - name: mot17
           hostPath:
-            path: /Users/sreebhargavibalija/Desktop/8001/CSE8001---Object-Detection/MOT17
+            path: /home/cc/CSE8001---Object-Detection/MOT17
             type: Directory

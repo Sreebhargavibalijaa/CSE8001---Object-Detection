@@ -15,8 +15,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 COPY requirements-serve.txt ./
 RUN pip install --upgrade pip \
-    && pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu \
-    && pip install ultralytics opencv-python-headless "numpy>=1.24.0,<2.0" pillow \
+    && pip install torch==2.9.1+cpu torchvision==0.24.1+cpu --index-url https://download.pytorch.org/whl/cpu \
+    && pip install ultralytics==8.4.214 opencv-python-headless "numpy>=1.24.0" pillow \
          lap trackeval minio onnx onnxruntime \
     && pip install -r requirements-serve.txt
 

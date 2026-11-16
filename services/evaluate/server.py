@@ -23,10 +23,18 @@ from services.lib.server import serve  # noqa: E402
 
 
 class SequenceShim:
-    def __init__(self, name, width, height):
+    """Minimal stand-in for common.Sequence used by the assertion code."""
+
+    def __init__(self, name, width, height, seq_length=1):
         self.name = name
         self.width = width
         self.height = height
+        self.seq_length = max(1, int(seq_length))
+
+    def frame_limit(self, max_frames=None):
+        if max_frames is None:
+            return self.seq_length
+        return min(int(max_frames), self.seq_length)
 
 
 class EvaluatorService(mot_pb2_grpc.EvaluatorServicer):
@@ -53,7 +61,8 @@ class EvaluatorService(mot_pb2_grpc.EvaluatorServicer):
     def _evaluate_one(self, request):
         rows = [(t.frame_id, t.track_id, t.left, t.top, t.width, t.height, t.confidence)
                 for t in request.tracks]
-        shim = SequenceShim(request.stream_id, request.width or 1, request.height or 1)
+        shim = SequenceShim(request.stream_id, request.width or 1, request.height or 1,
+                            seq_length=max((t.frame_id for t in request.tracks), default=1))
         motion = motion_assertion(shim, rows, MOTION_THRESHOLD)
         passed = (motion["assertions_checked"] or 0) - (motion["assertions_failed"] or 0)
         self.metrics.assertion(passed, motion["assertions_failed"] or 0)
